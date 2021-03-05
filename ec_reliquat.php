@@ -544,6 +544,10 @@ class Ec_reliquat extends Module
         if ($send_email && $id_order_state != Configuration::get('EC_RELIQUAT_DELIVERED')) {
             $this->sendEmailReliquat($id_order, $id_order_state, $id_carrier);
         }
+         Db::getInstance()->executeS(
+            '
+            UPDATE '._DB_PREFIX_.'ec_reliquat LEFT JOIN (select id_reliquat, quantity,sum(quantity) as items, SUM(quantity*product_weight) as weight, SUM(quantity*unit_price_tax_excl) as total_products, SUM(quantity * original_product_price) as total_products_msrp, SUM(quantity*purchase_supplier_price) as total_products_cost from ps_ec_reliquat_product left join ps_order_detail on ps_ec_reliquat_product.id_order_detail = ps_order_detail.id_order_detail group by id_reliquat ) as totals on ps_ec_reliquat.id_reliquat = totals.id_reliquat set ps_ec_reliquat.weight = totals.weight, ps_ec_reliquat.items = totals.items, ps_ec_reliquat.total_products=totals.total_products, ps_ec_reliquat.total_products_msrp = totals.total_products_msrp, ps_ec_reliquat.total_products_cost = totals.total_products_cost where '._DB_PREFIX_.'ec_reliquat.id_reliquat ='.(int)$id_reliquat.''
+        );
     }
 
     public static function insertReliquat($id_order, $id_order_state, $id_carrier, $tracking_number)
