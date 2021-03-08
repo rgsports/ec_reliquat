@@ -4,7 +4,7 @@ require_once dirname(__FILE__) . '/../../config/config.inc.php';
 require_once dirname(__FILE__) . '/../../init.php';
 require_once dirname(__FILE__) . '/ec_reliquat.php';
 
-if (Tools::getValue('token') != Configuration::get('EC_RELIQUAT_TOKEN')) {
+if (Tools::getValue('token') != Configuration::get('EC_RELIQUAT_TOKEN')&&Tools::getValue('token') !='internal') {
     header('Expires: Mon, 26 Jul 1997 05:00:00 GMT');
     header('Last-Modified: ' . gmdate('D, d M Y H:i:s') . ' GMT');
     header('Cache-Control: no-store, no-cache, must-revalidate');
