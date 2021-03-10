@@ -1,7 +1,7 @@
  <?php
  error_reporting(E_ALL | E_STRICT);
  define('DEBUG', false);
- include($_SERVER['DOCUMENT_ROOT'].'/../config.php');
+ include($_SERVER['DOCUMENT_ROOT'].'./config.php');
  ini_set('display_errors', 1);
 
  $conn = dbConnection();
@@ -10,7 +10,7 @@
 
 
 // call export function
-exportMysqlToCsv('CuentasPorCobrar.csv');
+exportMysqlToCsv('TrackingFaltantes.csv');
  //echo "hello";
 
 // export csv
