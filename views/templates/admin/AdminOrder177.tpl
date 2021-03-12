@@ -11,7 +11,7 @@
                     <tr class="nodrag nodrop">
                         <th></th>
                         <th class="left"><span class="title_box">{l s='Product name' mod='ec_reliquat'}</span></th>
-                        <th class="text-center">{l s='Available quantity' mod='ec_reliquat'}</th>
+                        {* <th class="text-center">{l s='Available quantity' mod='ec_reliquat'}</th> *}
                         <th class="text-center"><span class="title_box">{l s='Quantity' mod='ec_reliquat'}</span></th>
                         <th class="text-center">{l s='Quantity shipped' mod='ec_reliquat'}</th>
                         <th class="text-center">{l s='Quantity shipped today' mod='ec_reliquat'}</th>
@@ -26,9 +26,9 @@
                             <span class="productName">{$product.product_name}</span><br>
                             {l s='Reference number:' mod='ec_reliquat'} {$product.product_reference}<br>
                         </td>
-                        <td class="productQuantity text-center" width="10%">
-                        <b>{$product.quantity_available}</b>
-                        </td>
+                          {*    <td class="productQuantity text-center" width="10%">
+                            <b>{$product.quantity_available}</b>
+                        </td> *}
                         <td class="productQuantity text-center" width="10%">
                             <span class="product_quantity_show badge">{$product.product_quantity}</span>
                         </td>
@@ -36,9 +36,9 @@
                             <span class="badge badge-{$product.class_badge}">{$product.qty_ship}</span>
                         </td>
                         {if $product.product_quantity != $product.qty_ship}
-                            <td class="text-center" width="15%">
-                                <input type="number" id="quantity_shipped_{$product.id_order_detail}" name="products[{$product.id_order_detail}]" value="1" max="{$product.product_quantity-$product.qty_ship}" min="0">
-                            </td>
+                        <td class="text-center" width="15%">
+                            <input type="number" id="quantity_shipped_{$product.id_order_detail}" name="products[{$product.id_order_detail}]" value="{$product.product_quantity-$product.qty_ship}" max="{$product.product_quantity-$product.qty_ship}" min="0">
+                        </td>
                             <td width="10%">
                                 <div class="col-lg-2">
                                     <button class="btn btn-default" onclick="javascript:$('input#quantity_shipped_{$product.id_order_detail}').val(0); return false;">
