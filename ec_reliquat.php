@@ -61,48 +61,48 @@ class Ec_reliquat extends Module
     {
         Db::getInstance()->execute(
             '
-             CREATE TABLE IF NOT EXISTS `'._DB_PREFIX_.'ec_reliquat` (
-             `id_reliquat` INT AUTO_INCREMENT,
-             `id_order` INT,
-             `id_order_state` INT,
-             `id_carrier` INT,
-             `tracking_number` VARCHAR(50),
-             `date_add` DATETIME,
-             PRIMARY KEY (`id_reliquat`)
-             ) ENGINE='._MYSQL_ENGINE_.' DEFAULT CHARSET=utf8 ;'
-        );
+            CREATE TABLE IF NOT EXISTS `'._DB_PREFIX_.'ec_reliquat` (
+            `id_reliquat` INT AUTO_INCREMENT,
+            `id_order` INT,
+            `id_order_state` INT,
+            `id_carrier` INT,
+            `tracking_number` VARCHAR(50),
+            `date_add` DATETIME,
+            PRIMARY KEY (`id_reliquat`)
+        ) ENGINE='._MYSQL_ENGINE_.' DEFAULT CHARSET=utf8 ;'
+    );
 
         Db::getInstance()->execute(
             '
-             CREATE TABLE IF NOT EXISTS `'._DB_PREFIX_.'ec_reliquat_product` (
-             `id_reliquat_product` INT AUTO_INCREMENT,
-             `id_reliquat` INT,
-             `id_order_detail` INT,
-             `quantity` INT,
-             PRIMARY KEY (`id_reliquat_product`)
-             ) ENGINE='._MYSQL_ENGINE_.' DEFAULT CHARSET=utf8 ;'
-        );
+            CREATE TABLE IF NOT EXISTS `'._DB_PREFIX_.'ec_reliquat_product` (
+            `id_reliquat_product` INT AUTO_INCREMENT,
+            `id_reliquat` INT,
+            `id_order_detail` INT,
+            `quantity` INT,
+            PRIMARY KEY (`id_reliquat_product`)
+        ) ENGINE='._MYSQL_ENGINE_.' DEFAULT CHARSET=utf8 ;'
+    );
 
         Db::getInstance()->execute(
             '
-             CREATE TABLE IF NOT EXISTS `'._DB_PREFIX_.'ec_reliquat_attachment` (
-                `id_reliquat_attachment` INT AUTO_INCREMENT,
-                `id_reliquat` INT,
-                `name` VARCHAR(255),
-                `extension` VARCHAR(20),
-                `cle` VARCHAR(255),
-                `type` VARCHAR(255),
-                `date_add` DATETIME,
-                `date_download`DATETIME,
-             PRIMARY KEY (`id_reliquat_attachment`)
-             ) ENGINE='._MYSQL_ENGINE_.' DEFAULT CHARSET=utf8 ;'
-        );
+            CREATE TABLE IF NOT EXISTS `'._DB_PREFIX_.'ec_reliquat_attachment` (
+            `id_reliquat_attachment` INT AUTO_INCREMENT,
+            `id_reliquat` INT,
+            `name` VARCHAR(255),
+            `extension` VARCHAR(20),
+            `cle` VARCHAR(255),
+            `type` VARCHAR(255),
+            `date_add` DATETIME,
+            `date_download`DATETIME,
+            PRIMARY KEY (`id_reliquat_attachment`)
+        ) ENGINE='._MYSQL_ENGINE_.' DEFAULT CHARSET=utf8 ;'
+    );
         Configuration::updateValue('EC_RELIQUAT_TOKEN', md5(time() . _COOKIE_KEY_));
         $this->createStatuses();
         $res =parent::install() &&
-            $this->registerHook('displayOrderDetail') &&
-            $this->registerHook('header') &&
-            $this->registerHook('ActionAdminControllerSetMedia');
+        $this->registerHook('displayOrderDetail') &&
+        $this->registerHook('header') &&
+        $this->registerHook('ActionAdminControllerSetMedia');
         if (version_compare(_PS_VERSION_, '1.7.7', '<')) {
             $this->registerHook('AdminOrder');
         } else {
@@ -174,7 +174,7 @@ class Ec_reliquat extends Module
         Tools::redirectAdmin($this->context->link->getAdminLink('AdminOrders', true, $info_uri));
         exit(); */
        /*  echo $this->registerHook('displayAdminOrderMain');
-        exit(); */
+       exit(); */
         /**
          * If values have been submitted in the form, process.
          */
@@ -203,7 +203,7 @@ class Ec_reliquat extends Module
         $helper->identifier = $this->identifier;
         $helper->submit_action = 'submitEc_reliquatModule';
         $helper->currentIndex = $this->context->link->getAdminLink('AdminModules', false)
-            .'&configure='.$this->name.'&tab_module='.$this->tab.'&module_name='.$this->name;
+        .'&configure='.$this->name.'&tab_module='.$this->tab.'&module_name='.$this->name;
         $helper->token = Tools::getAdminTokenLite('AdminModules');
 
         $helper->tpl_vars = array(
@@ -224,8 +224,8 @@ class Ec_reliquat extends Module
         return array(
             'form' => array(
                 'legend' => array(
-                'title' => $this->l('Settings'),
-                'icon' => 'icon-cogs',
+                    'title' => $this->l('Settings'),
+                    'icon' => 'icon-cogs',
                 ),
                 'input' => array(
                     array(
@@ -236,9 +236,9 @@ class Ec_reliquat extends Module
                         'id' => 'test',
                         'required' => true,
                         'options' => array(
-                        'query' => $order_states,
-                        'id' => 'id_order_state',
-                        'name' => 'name'
+                            'query' => $order_states,
+                            'id' => 'id_order_state',
+                            'name' => 'name'
                         )
                     ),
                     array(
@@ -248,9 +248,9 @@ class Ec_reliquat extends Module
                         'name' => 'EC_RELIQUAT_COMPLETE',
                         'required' => true,
                         'options' => array(
-                        'query' => $order_states,
-                        'id' => 'id_order_state',
-                        'name' => 'name'
+                            'query' => $order_states,
+                            'id' => 'id_order_state',
+                            'name' => 'name'
                         )
                     ),
                     array(
@@ -261,9 +261,9 @@ class Ec_reliquat extends Module
                         'id' => 'test',
                         'required' => true,
                         'options' => array(
-                        'query' => $order_states,
-                        'id' => 'id_order_state',
-                        'name' => 'name'
+                            'query' => $order_states,
+                            'id' => 'id_order_state',
+                            'name' => 'name'
                         )
                     ),
                     array(
@@ -274,9 +274,9 @@ class Ec_reliquat extends Module
                         'id' => 'test',
                         'required' => true,
                         'options' => array(
-                        'query' => $order_states,
-                        'id' => 'id_order_state',
-                        'name' => 'name'
+                            'query' => $order_states,
+                            'id' => 'id_order_state',
+                            'name' => 'name'
                         )
                     ),
                     array(
@@ -287,9 +287,9 @@ class Ec_reliquat extends Module
                         'id' => 'test',
                         'required' => true,
                         'options' => array(
-                        'query' => $order_states,
-                        'id' => 'id_order_state',
-                        'name' => 'name'
+                            'query' => $order_states,
+                            'id' => 'id_order_state',
+                            'name' => 'name'
                         )
                     ),
                 ),
@@ -380,19 +380,19 @@ class Ec_reliquat extends Module
             'ec_id_order' => $id_order,
             'ec_base_uri' => Tools::getHttpHost(true).__PS_BASE_URI__,
         ));
-            
+        
         $html = $this->display(__FILE__, '/views/templates/admin/AdminOrder177.tpl');
         
         $reliquats = Db::getInstance()->executeS(
             '
-            SELECT id_order, id_reliquat, osl.name as order_state, c.name as carrier, tracking_number, date_add, er.id_carrier, er.id_order_state
+            SELECT id_order, id_reliquat, osl.name as order_state, c.name as carrier, tracking_number, date_add, er.id_carrier, er.id_order_state, weight, total_shipping
             FROM '._DB_PREFIX_.'ec_reliquat er
             LEFT JOIN '._DB_PREFIX_.'carrier c ON (er.id_carrier = c.id_carrier)
             LEFT JOIN '._DB_PREFIX_.'order_state_lang osl ON (osl.id_order_state = er.id_order_state AND id_lang = '.(int)$id_lang.')
             WHERE id_order = '.(int)$id_order.'
             '
         );
-    
+        
         foreach ($reliquats as &$reliquat) {
             $reliquat['products'] = Db::getInstance()->executeS(
                 '
@@ -467,7 +467,7 @@ class Ec_reliquat extends Module
             'order_states' => $order_states,
             'ec_id_order' => $id_order,
         ));
-            
+        
         $html = $this->display(__FILE__, '/views/templates/admin/AdminOrder.tpl');
         
         $reliquats = Db::getInstance()->executeS(
@@ -479,7 +479,7 @@ class Ec_reliquat extends Module
             WHERE id_order = '.(int)$id_order.'
             '
         );
-    
+        
         foreach ($reliquats as &$reliquat) {
             $reliquat['products'] = Db::getInstance()->executeS(
                 '
@@ -541,7 +541,7 @@ class Ec_reliquat extends Module
         $id_reliquat = self::insertReliquat($id_order, $id_order_state, $id_carrier, $tracking_number);
         self::addReliquatProduct($id_reliquat, $send_email, $id_order_state);
         self::addReliquatAttachment($id_reliquat);
-                      $this->totalizeReliquat($id_reliquat);
+        $this->totalizeReliquat($id_reliquat);
 
         if ($send_email && $id_order_state != Configuration::get('EC_RELIQUAT_DELIVERED')) {
             $this->sendEmailReliquat($id_order, $id_order_state, $id_carrier);
@@ -549,9 +549,9 @@ class Ec_reliquat extends Module
 
     }
     //totalizes reliquats including weight and shipping
-public function totalizeReliquat($id_reliquat)
+    public function totalizeReliquat($id_reliquat)
     {
-     Db::getInstance()->executeS(
+       Db::getInstance()->executeS(
         '
         UPDATE UPDATE
         ps_ec_reliquat
@@ -584,217 +584,217 @@ public function totalizeReliquat($id_reliquat)
         where
         ps_ec_reliquat.id_reliquat = '.(int)$id_reliquat.''
     );
- }
-    public static function insertReliquat($id_order, $id_order_state, $id_carrier, $tracking_number)
-    {
-        Db::getInstance()->insert(
-            'ec_reliquat',
-            array(
-                'id_order' => (int)$id_order,
-                'id_order_state' => (int)$id_order_state,
-                'id_carrier' => (int)$id_carrier,
-                'tracking_number' => pSQL($tracking_number),
-                'date_add' => pSQL(date('Y-m-d H:i:s'))
-            )
-        );
-        return Db::getInstance()->insert_ID();
-    }
-    
-    public function updateReliquat($id_reliquat, $tracking_number, $id_carrier, $id_order_state, $id_order)
-    {
-        Db::getinstance()->update(
-            'ec_reliquat',
-            array(
-                'tracking_number' => pSQL($tracking_number),
-                'id_carrier' => pSQL($id_carrier),
-                'id_order_state' => pSQL($id_order_state),
-                'date_add' => pSQL(date('Y-m-d H:i:s'))
-            ),
-            'id_reliquat = '.(int)$id_reliquat
-        );
-        if ($id_order_state != Configuration::get('EC_RELIQUAT_DELIVERED')) {
-            $products = Db::getInstance()->executeS('SELECT * FROM '._DB_PREFIX_.'ec_reliquat_product WHERE id_reliquat = '.(int)$id_reliquat);
-            $products_mail = array();
-            foreach ($products as $product) {
-                $products_mail[$product['id_order_detail']] = $product['quantity'];
-            }
-            $this->sendEmailReliquat($id_order, $id_order_state, $id_carrier, $products_mail, $tracking_number);
-        }
-    }
-    
-    public function deleteAttachment($cle)
-    {
-        $upload_dir = dirname(__FILE__).'/files/';
-        unlink($upload_dir.$cle);
-        return Db::getinstance()->delete('ec_reliquat_attachment', 'cle = "'.pSQL($cle).'"');
-    }
-    
-    public static function addReliquatProduct($id_reliquat, $send_email = false, $id_order_state = null, $products = null)
-    {
-        if ($products == null) {
-            $products = Tools::getValue('products');
-        }
+   }
+   public static function insertReliquat($id_order, $id_order_state, $id_carrier, $tracking_number)
+   {
+    Db::getInstance()->insert(
+        'ec_reliquat',
+        array(
+            'id_order' => (int)$id_order,
+            'id_order_state' => (int)$id_order_state,
+            'id_carrier' => (int)$id_carrier,
+            'tracking_number' => pSQL($tracking_number),
+            'date_add' => pSQL(date('Y-m-d H:i:s'))
+        )
+    );
+    return Db::getInstance()->insert_ID();
+}
+
+public function updateReliquat($id_reliquat, $tracking_number, $id_carrier, $id_order_state, $id_order)
+{
+    Db::getinstance()->update(
+        'ec_reliquat',
+        array(
+            'tracking_number' => pSQL($tracking_number),
+            'id_carrier' => pSQL($id_carrier),
+            'id_order_state' => pSQL($id_order_state),
+            'date_add' => pSQL(date('Y-m-d H:i:s'))
+        ),
+        'id_reliquat = '.(int)$id_reliquat
+    );
+    if ($id_order_state != Configuration::get('EC_RELIQUAT_DELIVERED')) {
+        $products = Db::getInstance()->executeS('SELECT * FROM '._DB_PREFIX_.'ec_reliquat_product WHERE id_reliquat = '.(int)$id_reliquat);
         $products_mail = array();
-        foreach ($products as $id_order_detail => $quantity) {
-            if ($quantity > 0) {
-                Db::getinstance()->insert(
-                    'ec_reliquat_product',
-                    array(
-                        'id_reliquat'=> (int)$id_reliquat,
-                        'id_order_detail'=> (int)$id_order_detail,
-                        'quantity'=> (int)$quantity,
-                    )
-                );
-            }
+        foreach ($products as $product) {
+            $products_mail[$product['id_order_detail']] = $product['quantity'];
         }
+        $this->sendEmailReliquat($id_order, $id_order_state, $id_carrier, $products_mail, $tracking_number);
     }
-    
-    public function sendEmailReliquat($id_order, $id_order_state, $id_carrier, $products = null, $tracking_number = null)
-    {
-        $order = new Order($id_order);
-        if ($products == null) {
-            $products = Tools::getValue('products');
-        }
-        
-        
+}
 
-        $customer = new Customer((int)$order->id_customer);
-        $templateVars = array(
-            '{firstname}' => $customer->firstname,
-            '{lastname}' => $customer->lastname,
-            '{id_order}' => $order->id,
-            '{order_name}' => $order->getUniqReference(),
-        );
-                        
-        $id_lang = $order->id_lang;
-        
-        if ($id_order_state == Configuration::get('EC_RELIQUAT_PROCESS')) {
-            $subject = $this->l('Processing in progress');
-            $template_name = 'reliquat_preparation';
-            $products_mail = '<ul>';
-            foreach ($products as $id_order_detail => $quantity) {
-                    $products_mail .= '<li>'.Db::getInstance()->getValue('SELECT product_name FROM '._DB_PREFIX_.'order_detail WHERE id_order_detail = '.(int)$id_order_detail).'</li>';
-            }
-            $products_mail .= '</ul>';
-            $templateVars['{products}'] = $products_mail;
-        } else {
-            $subject = $this->l('Shipped');
-            $template_name = 'reliquat_in_transit';
-            if ($tracking_number == null) {
-                $tracking_number = Tools::getValue('trackingNumber');
-            }
-            $followup = '';
-            if (Tools::strlen($tracking_number) > 0) {
-                $carrier = new Carrier($id_carrier);
-                if (Tools::strlen($carrier->url) > 0) {
-                    $followup = str_replace('@', $tracking_number, $carrier->url);
-                }
-            }
-            $templateVars['{followup}'] = $followup;
-            $templateVars['{products}'] = $this->getProductsMail($products);
-        }
-        Mail::Send(
-            $id_lang,
-            $template_name,
-            $subject,
-            $templateVars,
-            trim($customer->email),
-            $customer->firstname . ' ' . $customer->lastname,
-            null,
-            null,
-            null,
-            null,
-            dirname(__FILE__) . '/mails/'
-        );
-    }
-    
-    public function getProductsMail($products)
-    {
-        $prods = array();
-        foreach ($products as $id_order_detail => $quantity) {
-            if ($quantity > 0) {
-                $prods[] = array(
-                    'name' => Db::getInstance()->getValue('SELECT product_name FROM '._DB_PREFIX_.'order_detail WHERE id_order_detail = '.(int)$id_order_detail),
-                    'quantity' => $quantity
-                );
-            }
-        }
-        $this->smarty->assign(array(
-            'products' => $prods,
-        ));
-        return $this->display(__FILE__, '/views/templates/admin/productsmail.tpl');
-    }
-    
-    public function addReliquatAttachment($id_reliquat)
-    {
-        foreach ($_FILES as $key => $val) {
-            if (preg_match('/^reliquat_attachment/', $key)) {
-                $file = $_FILES[$key];
-                if (isset($file['name']) && !empty($file['name'])) {
-                    $file_name =  Tools::getValue('filename_'.$key);
-                    $ext = Tools::strtolower(Tools::substr(strrchr($file['name'], '.'), 1));
-                    $date = date('Y-m-d H:i:s');
-                    $cle = md5($file_name.$date);
-                    if (move_uploaded_file($file['tmp_name'], $this->upload_path.$cle)) {
-                        Db::getinstance()->insert(
-                            'ec_reliquat_attachment',
-                            array(
-                                'id_reliquat'=> (int)$id_reliquat,
-                                'name' => pSQL($file_name),
-                                'extension' => pSQL($ext),
-                                'cle' => pSQL($cle),
-                                'type' => $file['type'],
-                                'date_add' => $date,
-                            )
-                        );
-                    }
-                }
-            }
-        }
-    }
+public function deleteAttachment($cle)
+{
+    $upload_dir = dirname(__FILE__).'/files/';
+    unlink($upload_dir.$cle);
+    return Db::getinstance()->delete('ec_reliquat_attachment', 'cle = "'.pSQL($cle).'"');
+}
 
-    public function hookDisplayOrderDetail($params)
-    {
-        $id_order = $params['order']->id;
-        $reliquats = Db::getInstance()->executeS(
-            '
-            SELECT id_order, id_reliquat, osl.name as order_state, c.name as carrier, tracking_number, date_add, er.id_carrier
-            FROM '._DB_PREFIX_.'ec_reliquat er
-            LEFT JOIN '._DB_PREFIX_.'carrier c ON (er.id_carrier = c.id_carrier)
-            LEFT JOIN '._DB_PREFIX_.'order_state_lang osl ON (osl.id_order_state = er.id_order_state AND id_lang = '.$params['order']->id_lang.')
-            WHERE id_order = '.(int)$id_order.'
-            '
-        );
-        foreach ($reliquats as &$reliquat) {
-            $reliquat['products'] = Db::getInstance()->executeS(
-                '
-                SELECT id_reliquat_product, quantity, product_id, product_attribute_id, product_name, product_reference
-                FROM '._DB_PREFIX_.'ec_reliquat_product erp
-                LEFT JOIN '._DB_PREFIX_.'order_detail od ON (od.id_order_detail = erp.id_order_detail)
-                WHERE id_reliquat = '.(int)$reliquat['id_reliquat'].'
-                '
+public static function addReliquatProduct($id_reliquat, $send_email = false, $id_order_state = null, $products = null)
+{
+    if ($products == null) {
+        $products = Tools::getValue('products');
+    }
+    $products_mail = array();
+    foreach ($products as $id_order_detail => $quantity) {
+        if ($quantity > 0) {
+            Db::getinstance()->insert(
+                'ec_reliquat_product',
+                array(
+                    'id_reliquat'=> (int)$id_reliquat,
+                    'id_order_detail'=> (int)$id_order_detail,
+                    'quantity'=> (int)$quantity,
+                )
             );
-            if (Tools::strlen($reliquat['tracking_number']) > 0) {
-                $carrier = new Carrier($reliquat['id_carrier']);
-                if (Tools::strlen($carrier->url) > 0) {
-                    $reliquat['tracking_url'] = str_replace('@', $reliquat['tracking_number'], $carrier->url);
-                }
-            }
-            $reliquat['attachments'] = Db::getInstance()->executeS('SELECT * FROM '._DB_PREFIX_.'ec_reliquat_attachment WHERE id_reliquat = '.(int)$reliquat['id_reliquat']);
         }
+    }
+}
 
-        if ($reliquats) {
-            $token = Configuration::get('EC_RELIQUAT_TOKEN');
-            $this->smarty->assign(array(
-                'reliquats' => $reliquats,
-                'dl_script' => Tools::getHttpHost(true).__PS_BASE_URI__.'modules/ec_reliquat/dl.php?token='.$token,
-                'link_delivery_slip' => Tools::getHttpHost(true).__PS_BASE_URI__.'modules/ec_reliquat/generateDeliverySlip.php?token='.$token,
-            ));
-            return $this->display(__FILE__, '/views/templates/admin/order_detail.tpl');
-        }
+public function sendEmailReliquat($id_order, $id_order_state, $id_carrier, $products = null, $tracking_number = null)
+{
+    $order = new Order($id_order);
+    if ($products == null) {
+        $products = Tools::getValue('products');
     }
     
     
+
+    $customer = new Customer((int)$order->id_customer);
+    $templateVars = array(
+        '{firstname}' => $customer->firstname,
+        '{lastname}' => $customer->lastname,
+        '{id_order}' => $order->id,
+        '{order_name}' => $order->getUniqReference(),
+    );
+    
+    $id_lang = $order->id_lang;
+    
+    if ($id_order_state == Configuration::get('EC_RELIQUAT_PROCESS')) {
+        $subject = $this->l('Processing in progress');
+        $template_name = 'reliquat_preparation';
+        $products_mail = '<ul>';
+        foreach ($products as $id_order_detail => $quantity) {
+            $products_mail .= '<li>'.Db::getInstance()->getValue('SELECT product_name FROM '._DB_PREFIX_.'order_detail WHERE id_order_detail = '.(int)$id_order_detail).'</li>';
+        }
+        $products_mail .= '</ul>';
+        $templateVars['{products}'] = $products_mail;
+    } else {
+        $subject = $this->l('Shipped');
+        $template_name = 'reliquat_in_transit';
+        if ($tracking_number == null) {
+            $tracking_number = Tools::getValue('trackingNumber');
+        }
+        $followup = '';
+        if (Tools::strlen($tracking_number) > 0) {
+            $carrier = new Carrier($id_carrier);
+            if (Tools::strlen($carrier->url) > 0) {
+                $followup = str_replace('@', $tracking_number, $carrier->url);
+            }
+        }
+        $templateVars['{followup}'] = $followup;
+        $templateVars['{products}'] = $this->getProductsMail($products);
+    }
+    Mail::Send(
+        $id_lang,
+        $template_name,
+        $subject,
+        $templateVars,
+        trim($customer->email),
+        $customer->firstname . ' ' . $customer->lastname,
+        null,
+        null,
+        null,
+        null,
+        dirname(__FILE__) . '/mails/'
+    );
+}
+
+public function getProductsMail($products)
+{
+    $prods = array();
+    foreach ($products as $id_order_detail => $quantity) {
+        if ($quantity > 0) {
+            $prods[] = array(
+                'name' => Db::getInstance()->getValue('SELECT product_name FROM '._DB_PREFIX_.'order_detail WHERE id_order_detail = '.(int)$id_order_detail),
+                'quantity' => $quantity
+            );
+        }
+    }
+    $this->smarty->assign(array(
+        'products' => $prods,
+    ));
+    return $this->display(__FILE__, '/views/templates/admin/productsmail.tpl');
+}
+
+public function addReliquatAttachment($id_reliquat)
+{
+    foreach ($_FILES as $key => $val) {
+        if (preg_match('/^reliquat_attachment/', $key)) {
+            $file = $_FILES[$key];
+            if (isset($file['name']) && !empty($file['name'])) {
+                $file_name =  Tools::getValue('filename_'.$key);
+                $ext = Tools::strtolower(Tools::substr(strrchr($file['name'], '.'), 1));
+                $date = date('Y-m-d H:i:s');
+                $cle = md5($file_name.$date);
+                if (move_uploaded_file($file['tmp_name'], $this->upload_path.$cle)) {
+                    Db::getinstance()->insert(
+                        'ec_reliquat_attachment',
+                        array(
+                            'id_reliquat'=> (int)$id_reliquat,
+                            'name' => pSQL($file_name),
+                            'extension' => pSQL($ext),
+                            'cle' => pSQL($cle),
+                            'type' => $file['type'],
+                            'date_add' => $date,
+                        )
+                    );
+                }
+            }
+        }
+    }
+}
+
+public function hookDisplayOrderDetail($params)
+{
+    $id_order = $params['order']->id;
+    $reliquats = Db::getInstance()->executeS(
+        '
+        SELECT id_order, id_reliquat, osl.name as order_state, c.name as carrier, tracking_number, date_add, er.id_carrier
+        FROM '._DB_PREFIX_.'ec_reliquat er
+        LEFT JOIN '._DB_PREFIX_.'carrier c ON (er.id_carrier = c.id_carrier)
+        LEFT JOIN '._DB_PREFIX_.'order_state_lang osl ON (osl.id_order_state = er.id_order_state AND id_lang = '.$params['order']->id_lang.')
+        WHERE id_order = '.(int)$id_order.'
+        '
+    );
+    foreach ($reliquats as &$reliquat) {
+        $reliquat['products'] = Db::getInstance()->executeS(
+            '
+            SELECT id_reliquat_product, quantity, product_id, product_attribute_id, product_name, product_reference
+            FROM '._DB_PREFIX_.'ec_reliquat_product erp
+            LEFT JOIN '._DB_PREFIX_.'order_detail od ON (od.id_order_detail = erp.id_order_detail)
+            WHERE id_reliquat = '.(int)$reliquat['id_reliquat'].'
+            '
+        );
+        if (Tools::strlen($reliquat['tracking_number']) > 0) {
+            $carrier = new Carrier($reliquat['id_carrier']);
+            if (Tools::strlen($carrier->url) > 0) {
+                $reliquat['tracking_url'] = str_replace('@', $reliquat['tracking_number'], $carrier->url);
+            }
+        }
+        $reliquat['attachments'] = Db::getInstance()->executeS('SELECT * FROM '._DB_PREFIX_.'ec_reliquat_attachment WHERE id_reliquat = '.(int)$reliquat['id_reliquat']);
+    }
+
+    if ($reliquats) {
+        $token = Configuration::get('EC_RELIQUAT_TOKEN');
+        $this->smarty->assign(array(
+            'reliquats' => $reliquats,
+            'dl_script' => Tools::getHttpHost(true).__PS_BASE_URI__.'modules/ec_reliquat/dl.php?token='.$token,
+            'link_delivery_slip' => Tools::getHttpHost(true).__PS_BASE_URI__.'modules/ec_reliquat/generateDeliverySlip.php?token='.$token,
+        ));
+        return $this->display(__FILE__, '/views/templates/admin/order_detail.tpl');
+    }
+}
+
+
 
     /**
     * Add the CSS & JavaScript files you want to be loaded in the BO.
