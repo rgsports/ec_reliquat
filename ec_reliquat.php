@@ -541,15 +541,50 @@ class Ec_reliquat extends Module
         $id_reliquat = self::insertReliquat($id_order, $id_order_state, $id_carrier, $tracking_number);
         self::addReliquatProduct($id_reliquat, $send_email, $id_order_state);
         self::addReliquatAttachment($id_reliquat);
+                      $this->totalizeReliquat($id_reliquat);
+
         if ($send_email && $id_order_state != Configuration::get('EC_RELIQUAT_DELIVERED')) {
             $this->sendEmailReliquat($id_order, $id_order_state, $id_carrier);
         }
-         Db::getInstance()->executeS(
-            '
-            UPDATE '._DB_PREFIX_.'ec_reliquat LEFT JOIN (select id_reliquat, quantity,sum(quantity) as items, SUM(quantity*product_weight) as weight, SUM(quantity*unit_price_tax_excl) as total_products, SUM(quantity * original_product_price) as total_products_msrp, SUM(quantity*purchase_supplier_price) as total_products_cost from ps_ec_reliquat_product left join ps_order_detail on ps_ec_reliquat_product.id_order_detail = ps_order_detail.id_order_detail group by id_reliquat ) as totals on ps_ec_reliquat.id_reliquat = totals.id_reliquat set ps_ec_reliquat.weight = totals.weight, ps_ec_reliquat.items = totals.items, ps_ec_reliquat.total_products=totals.total_products, ps_ec_reliquat.total_products_msrp = totals.total_products_msrp, ps_ec_reliquat.total_products_cost = totals.total_products_cost where '._DB_PREFIX_.'ec_reliquat.id_reliquat ='.(int)$id_reliquat.''
-        );
-    }
 
+    }
+    //totalizes reliquats including weight and shipping
+public function totalizeReliquat($id_reliquat)
+    {
+     Db::getInstance()->executeS(
+        '
+        UPDATE UPDATE
+        ps_ec_reliquat
+        LEFT JOIN (
+        select
+        id_reliquat,
+        quantity,
+        sum(quantity) as items,
+        SUM(quantity * product_weight) as weight,
+        SUM(quantity * unit_price_tax_excl) as total_products,
+        SUM(quantity * original_product_price) as total_products_msrp,
+        SUM(quantity * purchase_supplier_price) as total_products_cost,
+        SUM(
+        (quantity * product_weight) *(ps_order_carrier.shipping_cost_tax_excl / IF(ps_order_carrier.weight!=0,ps_order_carrier.weight,0.001))
+        ) as total_shipping
+        from
+        ps_ec_reliquat_product
+        left join ps_order_detail on ps_ec_reliquat_product.id_order_detail = ps_order_detail.id_order_detail
+        left join ps_order_carrier on ps_order_detail.id_order = ps_order_carrier.id_order
+        group by
+        id_reliquat
+        ) as totals on ps_ec_reliquat.id_reliquat = totals.id_reliquat
+        set
+        ps_ec_reliquat.weight = totals.weight,
+        ps_ec_reliquat.items = totals.items,
+        ps_ec_reliquat.total_products = totals.total_products,
+        ps_ec_reliquat.total_products_msrp = totals.total_products_msrp,
+        ps_ec_reliquat.total_products_cost = totals.total_products_cost,
+        ps_ec_reliquat.total_shipping = totals.total_shipping
+        where
+        ps_ec_reliquat.id_reliquat = '.(int)$id_reliquat.''
+    );
+ }
     public static function insertReliquat($id_order, $id_order_state, $id_carrier, $tracking_number)
     {
         Db::getInstance()->insert(
