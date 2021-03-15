@@ -14,8 +14,8 @@
         <tbody>
             {foreach $reliquats as $reliquat}
                 <tr>
-                    {* <td>{$reliquat.id_reliquat}</td> *}
-                    <td>{if isset($reliquat.tracking_url)}<a target="_blank" href="{$reliquat.tracking_url}">{$reliquat.tracking_number}</a>{/if}</td>
+                <th>{l s='Invoice' mod='ec_reliquat'}</th>
+                <td>{if isset($reliquat.tracking_url)}<a target="_blank" href="{$reliquat.tracking_url}">{$reliquat.tracking_number}</a>{else}{$reliquat.tracking_number}{/if}</td>
                     <td>{$reliquat.carrier}</td>
                     <td>{$reliquat.order_state}</td>
                     <td>{$reliquat.date_add} <a href="{$link_delivery_slip}&id_order={$reliquat.id_order}&id_reliquat={$reliquat.id_reliquat}"><i class="material-icons">cloud_download</i></a></td>
