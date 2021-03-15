@@ -1,12 +1,14 @@
 <div id="ec_reliquat_orderdetail" class="box hidden-sm-down">
+{l s='Invoice' mod='ec_reliquat'}
     <table id="order-products" class="table table-bordered">
         <thead class="thead-default">
             <tr>
                 <th>{l s='Invoice' mod='ec_reliquat'}</th>
+                 <th>{l s='Date' mod='ec_reliquat'}</th>
                 <th>{l s='Tracking number' mod='ec_reliquat'}</th>
                 <th>{l s='Carrier' mod='ec_reliquat'}</th>
                 <th>{l s='Order State' mod='ec_reliquat'}</th>
-                <th>{l s='Delivery Slip' mod='ec_reliquat'}</th>
+                <th>{l s='Documents' mod='ec_reliquat'}</th>
                 <th>{l s='Products' mod='ec_reliquat'}</th>
                 <th>{l s='Attachments' mod='ec_reliquat'}</th>
             </tr>
@@ -15,10 +17,12 @@
             {foreach $reliquats as $reliquat}
                 <tr>
                 <td>{if isset($reliquat.tracking_url)}<a target="_blank" href="{$reliquat.tracking_url}">{$reliquat.tracking_number}</a>{else}{$reliquat.tracking_number}{/if}</td>
-                    <td>{$reliquat.carrier}</td>
+                <td>{$reliquat.date_add}</td>                   
+                   <td>{$reliquat.carrier}</td>
                     <td>{$reliquat.order_state}</td>
-                    <td>{$reliquat.date_add} <a href="{$link_delivery_slip}&id_order={$reliquat.id_order}&id_reliquat={$reliquat.id_reliquat}"><i class="material-icons">cloud_download</i></a></td>
-                    <td><a href="#" data-id="{$reliquat.id_reliquat}" class="showProdsReliquat"><i class="material-icons">add</i></a></td>
+   <td>Packing list <a href="{$link_delivery_slip}&id_order={$reliquat.id_order}&id_reliquat={$reliquat.id_reliquat}"><i class="material-icons">cloud_download</i></a>{if isset($reliquat.tracking_number)}<br>
+                    Invoice <a href="https://www.rgdist.net/modules/quickbooks_online/generateInvoice.php?invoice={$reliquat.id_reliquat}"><i class="material-icons">cloud_download</i></a>{/if}
+                </td>                    <td><a href="#" data-id="{$reliquat.id_reliquat}" class="showProdsReliquat"><i class="material-icons">add</i></a></td>
                     <td>{if count($reliquat['attachments']) > 0}<a href="#" data-id="{$reliquat.id_reliquat}" class="showAttsReliquat"><i class="material-icons">add</i></a>{/if}</td>
                 </tr>
                 <tr style="width: 100%; display: none;" class="table reliquat_products" id="products{$reliquat.id_reliquat}">
