@@ -2,7 +2,7 @@
     <table id="order-products" class="table table-bordered">
         <thead class="thead-default">
             <tr>
-                {* <th>{l s='Partial Shipment' mod='ec_reliquat'}</th> *}
+                <th>{l s='Invoice' mod='ec_reliquat'}</th>
                 <th>{l s='Tracking number' mod='ec_reliquat'}</th>
                 <th>{l s='Carrier' mod='ec_reliquat'}</th>
                 <th>{l s='Order State' mod='ec_reliquat'}</th>
@@ -14,7 +14,6 @@
         <tbody>
             {foreach $reliquats as $reliquat}
                 <tr>
-                <th>{l s='Invoice' mod='ec_reliquat'}</th>
                 <td>{if isset($reliquat.tracking_url)}<a target="_blank" href="{$reliquat.tracking_url}">{$reliquat.tracking_number}</a>{else}{$reliquat.tracking_number}{/if}</td>
                     <td>{$reliquat.carrier}</td>
                     <td>{$reliquat.order_state}</td>
