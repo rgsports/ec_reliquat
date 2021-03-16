@@ -581,6 +581,7 @@ class Ec_reliquat extends Module
         ps_ec_reliquat.total_products_msrp = totals.total_products_msrp,
         ps_ec_reliquat.total_products_cost = totals.total_products_cost,
         ps_ec_reliquat.total_shipping = totals.total_shipping
+        ps_ec_reliquat.date_update = current_timestamp
         where
         ps_ec_reliquat.id_reliquat = '.(int)$id_reliquat.''
     );
@@ -608,7 +609,9 @@ public function updateReliquat($id_reliquat, $tracking_number, $id_carrier, $id_
             'tracking_number' => pSQL($tracking_number),
             'id_carrier' => pSQL($id_carrier),
             'id_order_state' => pSQL($id_order_state),
-            'date_add' => pSQL(date('Y-m-d H:i:s'))
+            'date_add' => pSQL(date('Y-m-d H:i:s')),
+            'date_update' => pSQL(date('Y-m-d H:i:s'))
+
         ),
         'id_reliquat = '.(int)$id_reliquat
     );
