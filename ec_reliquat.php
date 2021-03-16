@@ -553,7 +553,7 @@ class Ec_reliquat extends Module
     {
        Db::getInstance()->executeS(
         '
-        UPDATE UPDATE
+        UPDATE
         ps_ec_reliquat
         LEFT JOIN (
         select
