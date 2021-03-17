@@ -546,6 +546,7 @@ class Ec_reliquat extends Module
         if ($send_email && $id_order_state != Configuration::get('EC_RELIQUAT_DELIVERED')) {
             $this->sendEmailReliquat($id_order, $id_order_state, $id_carrier);
         }
+        totalizeReliquat($id_reliquat);
 
     }
     //totalizes reliquats including weight and shipping
@@ -587,6 +588,14 @@ class Ec_reliquat extends Module
    }
    public static function insertReliquat($id_order, $id_order_state, $id_carrier, $tracking_number)
    {
+//inserts into order invoice
+    Db::getInstance()->executeS(
+        '
+        INSERT INTO `ps_order_invoice` (id_order_invoice,`id_order`, `number`, `delivery_number`, `delivery_date`, `total_discount_tax_excl`, `total_discount_tax_incl`, `total_paid_tax_excl`, `total_paid_tax_incl`, `total_products`, `total_products_wt`, `total_shipping_tax_excl`, `total_shipping_tax_incl`, `shipping_tax_computation_method`, `total_wrapping_tax_excl`, `total_wrapping_tax_incl`, `shop_address`, `note`, `date_add`)
+        SELECT
+        ps_ec_reliquat.id_reliquat,  ps_ec_reliquat.id_order,  ps_ec_reliquat.id_reliquat,  ps_ec_reliquat.id_reliquat,  ps_ec_reliquat.date_add, 0, 0, `total_paid_tax_excl`, `total_paid_tax_incl`,  ps_ec_reliquat.`total_products`, `total_products_wt`, `total_shipping_tax_excl`, 0, 0, `total_wrapping_tax_excl`, `total_wrapping_tax_incl`, \'RG SPORTS\', \'\', ps_ec_reliquat.date_add from ps_ec_reliquat LEFT JOIN ps_orders on ps_orders.id_order = ps_ec_reliquat.id_order WHERE ps_ec_reliquat.id_reliquat=  '.(int)$id_reliquat.''
+    );
+    
     Db::getInstance()->insert(
         'ec_reliquat',
         array(

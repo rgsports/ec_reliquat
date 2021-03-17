@@ -13,10 +13,9 @@ if (Tools::getValue('token') != Configuration::get('EC_RELIQUAT_TOKEN')&&Tools::
     Tools::redirect('Location: ../');
     exit();
 }
-$id_order = Tools::getValue('id_order');
-$order = new Order((int) $id_order);
-$order_invoice_collection = $order->getInvoicesCollection();
+$id_reliquat = Tools::getValue('id_reliquat');
+$order_invoice =  new OrderInvoice($id_reliquat);
 //dump($order_invoice_collection);
 //echo PDF::TEMPLATE_DELIVERY_SLIP;
-$pdf = new PDF($order_invoice_collection, PDF::TEMPLATE_DELIVERY_SLIP, Context::getContext()->smarty);
+$pdf = new PDF($order_invoice, PDF::TEMPLATE_DELIVERY_SLIP, Context::getContext()->smarty);
 $pdf->render();
