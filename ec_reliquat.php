@@ -546,13 +546,13 @@ class Ec_reliquat extends Module
         if ($send_email && $id_order_state != Configuration::get('EC_RELIQUAT_DELIVERED')) {
             $this->sendEmailReliquat($id_order, $id_order_state, $id_carrier);
         }
-        totalizeReliquat($id_reliquat);
+        $this->totalizeReliquat($id_reliquat);
 
     }
     //totalizes reliquats including weight and shipping
-    public function totalizeReliquat($id_reliquat)
+   public function totalizeReliquat($id_reliquat)
     {
-       Db::getInstance()->executeS(
+     Db::getInstance()->executeS(
         '
         UPDATE
         ps_ec_reliquat
@@ -562,11 +562,11 @@ class Ec_reliquat extends Module
         quantity,
         sum(quantity) as items,
         SUM(quantity * product_weight) as weight,
-        SUM(quantity * unit_price_tax_excl) as total_products,
+        SUM(quantity * unit_price_tax_incl) as total_products,
         SUM(quantity * original_product_price) as total_products_msrp,
         SUM(quantity * purchase_supplier_price) as total_products_cost,
         SUM(
-        (quantity * product_weight) *(ps_order_carrier.shipping_cost_tax_excl / IF(ps_order_carrier.weight!=0,ps_order_carrier.weight,0.001))
+        (quantity * product_weight) *(ps_order_carrier.shipping_cost_tax_incl / IF(ps_order_carrier.weight!=0,ps_order_carrier.weight,0.001))
         ) as total_shipping
         from
         ps_ec_reliquat_product
@@ -581,22 +581,22 @@ class Ec_reliquat extends Module
         ps_ec_reliquat.total_products = totals.total_products,
         ps_ec_reliquat.total_products_msrp = totals.total_products_msrp,
         ps_ec_reliquat.total_products_cost = totals.total_products_cost,
-        ps_ec_reliquat.total_shipping = totals.total_shipping
+        ps_ec_reliquat.total_shipping = totals.total_shipping,
         ps_ec_reliquat.date_update = current_timestamp
         where
         ps_ec_reliquat.id_reliquat = '.(int)$id_reliquat.''
     );
-   }
-   public static function insertReliquat($id_order, $id_order_state, $id_carrier, $tracking_number)
-   {
-//inserts into order invoice
-    Db::getInstance()->executeS(
-        '
+
+     Db::getInstance()->executeS(
+        "
         INSERT INTO `ps_order_invoice` (id_order_invoice,`id_order`, `number`, `delivery_number`, `delivery_date`, `total_discount_tax_excl`, `total_discount_tax_incl`, `total_paid_tax_excl`, `total_paid_tax_incl`, `total_products`, `total_products_wt`, `total_shipping_tax_excl`, `total_shipping_tax_incl`, `shipping_tax_computation_method`, `total_wrapping_tax_excl`, `total_wrapping_tax_incl`, `shop_address`, `note`, `date_add`)
         SELECT
-        ps_ec_reliquat.id_reliquat,  ps_ec_reliquat.id_order,  ps_ec_reliquat.id_reliquat,  ps_ec_reliquat.id_reliquat,  ps_ec_reliquat.date_add, 0, 0, `total_paid_tax_excl`, `total_paid_tax_incl`,  ps_ec_reliquat.`total_products`, `total_products_wt`, `total_shipping_tax_excl`, 0, 0, `total_wrapping_tax_excl`, `total_wrapping_tax_incl`, \'RG SPORTS\', \'\', ps_ec_reliquat.date_add from ps_ec_reliquat LEFT JOIN ps_orders on ps_orders.id_order = ps_ec_reliquat.id_order WHERE ps_ec_reliquat.id_reliquat=  '.(int)$id_reliquat.''
+        ps_ec_reliquat.id_reliquat,  ps_ec_reliquat.id_order,  ps_ec_reliquat.id_reliquat,  ps_ec_reliquat.id_reliquat,  ps_ec_reliquat.date_add, 0, 0, `total_paid_tax_excl`, `total_paid_tax_incl`,  ps_ec_reliquat.`total_products`, `total_products_wt`, `total_shipping_tax_excl`, 0, 0, `total_wrapping_tax_excl`, `total_wrapping_tax_incl`, 'RG SPORTS', '', ps_ec_reliquat.date_add from ps_ec_reliquat LEFT JOIN ps_orders on ps_orders.id_order = ps_ec_reliquat.id_order WHERE ps_ec_reliquat.id_reliquat=  ".(int)$id_reliquat.' ON DUPLICATE KEY update  ps_order_invoice.total_paid_tax_excl = ps_orders.total_paid_tax_excl,ps_order_invoice.total_paid_tax_incl=ps_orders.total_paid_tax_incl, ps_order_invoice.`total_products` =  ps_ec_reliquat.`total_products`'
     );
-    
+ }
+   public static function insertReliquat($id_order, $id_order_state, $id_carrier, $tracking_number)
+   {
+
     Db::getInstance()->insert(
         'ec_reliquat',
         array(
