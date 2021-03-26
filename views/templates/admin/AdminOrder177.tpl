@@ -46,9 +46,9 @@
                             <input type="number" id="quantity_shipped_{$product.id_order_detail}" name="products[{$product.id_order_detail}-qty]" value="{$product.product_quantity-$product.qty_ship}" max="{$product.product_quantity-$product.qty_ship}" min="0">
                         </td>
                         <td>
-                           {if !empty($product.warehouses)}
+                         {if !empty($product.warehouses)}
 
-                           <select id="" name="products[{$product.id_order_detail}-wh]" class="warehouse-select">
+                         <select id="" name="products[{$product.id_order_detail}-wh]" class="warehouse-select">
                             <option value="0" selected="selected">{l s='Select Warehouse' mod='wkwarehouses'}</option>
                             {foreach from=$product.warehouses item='warehouse'}
                             <option value="{$warehouse['warehouse_id']|intval}" >{$warehouse['title']|escape:'html':'UTF-8'} ({$warehouse['qty']})</option>

@@ -373,7 +373,7 @@ class Ec_reliquat extends Module
         }
 
         $id_lang = (int)$this->context->language->id;
-        $order_states = Db::getInstance()->executeS('SELECT id_order_state, name FROM '._DB_PREFIX_.'order_state_lang WHERE id_lang = '.(int)$id_lang.' AND id_order_state IN ('.Configuration::get('EC_RELIQUAT_PROCESS').','.Configuration::get('EC_RELIQUAT_SHIPPED').','.Configuration::get('EC_RELIQUAT_DELIVERED').')');
+        $order_states = Db::getInstance()->executeS('SELECT id_order_state, name FROM '._DB_PREFIX_.'order_state_lang WHERE id_lang = '.(int)$id_lang.' AND id_order_state IN ('.Configuration::get('EC_RELIQUAT_PROCESS').','.Configuration::get('EC_RELIQUAT_SHIPPED').','.Configuration::get('EC_RELIQUAT_DELIVERED').') order by id_order_state desc');
         $this->smarty->assign(array(
             'products' => $products,
             'url_form' => $_SERVER['REQUEST_URI'],
@@ -597,7 +597,7 @@ class Ec_reliquat extends Module
 //
     public function totalizeReliquat($id_reliquat)
     {
-       Db::getInstance()->executeS(
+     Db::getInstance()->executeS(
         '
         UPDATE
         ps_ec_reliquat
@@ -632,15 +632,15 @@ class Ec_reliquat extends Module
         ps_ec_reliquat.id_reliquat = '.(int)$id_reliquat.''
     );
 
-       Db::getInstance()->executeS(
+     Db::getInstance()->executeS(
         "
         INSERT INTO `ps_order_invoice` (id_order_invoice,`id_order`, `number`, `delivery_number`, `delivery_date`, `total_discount_tax_excl`, `total_discount_tax_incl`, `total_paid_tax_excl`, `total_paid_tax_incl`, `total_products`, `total_products_wt`, `total_shipping_tax_excl`, `total_shipping_tax_incl`, `shipping_tax_computation_method`, `total_wrapping_tax_excl`, `total_wrapping_tax_incl`, `shop_address`, `note`, `date_add`)
         SELECT
         ps_ec_reliquat.id_reliquat,  ps_ec_reliquat.id_order,  ps_ec_reliquat.id_reliquat,  ps_ec_reliquat.id_reliquat,  ps_ec_reliquat.date_add, 0, 0, `total_paid_tax_excl`, `total_paid_tax_incl`,  ps_ec_reliquat.`total_products`, `total_products_wt`, `total_shipping_tax_excl`, 0, 0, `total_wrapping_tax_excl`, `total_wrapping_tax_incl`, 'RG SPORTS', '', ps_ec_reliquat.date_add from ps_ec_reliquat LEFT JOIN ps_orders on ps_orders.id_order = ps_ec_reliquat.id_order WHERE ps_ec_reliquat.id_reliquat=  ".(int)$id_reliquat.' ON DUPLICATE KEY update  ps_order_invoice.total_paid_tax_excl = ps_orders.total_paid_tax_excl,ps_order_invoice.total_paid_tax_incl=ps_orders.total_paid_tax_incl, ps_order_invoice.`total_products` =  ps_ec_reliquat.`total_products`'
     );
-   }
-   public function updateReliquat($id_reliquat, $tracking_number, $id_carrier, $id_order_state, $id_order)
-   {
+ }
+ public function updateReliquat($id_reliquat, $tracking_number, $id_carrier, $id_order_state, $id_order)
+ {
     Db::getinstance()->update(
         'ec_reliquat',
         array(
