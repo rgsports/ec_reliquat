@@ -3,6 +3,8 @@
 require_once dirname(__FILE__) . '/../../config/config.inc.php';
 require_once dirname(__FILE__) . '/../../init.php';
 require_once dirname(__FILE__) . '/ec_reliquat.php';
+require_once dirname(__FILE__) . '/../quickbooks_online/quickbooks_online.php';
+
 
 if (Tools::getValue('token') != Configuration::get('EC_RELIQUAT_TOKEN')&&Tools::getValue('token') !='internal') {
     header('Expires: Mon, 26 Jul 1997 05:00:00 GMT');
@@ -13,8 +15,16 @@ if (Tools::getValue('token') != Configuration::get('EC_RELIQUAT_TOKEN')&&Tools::
     Tools::redirect('Location: ../');
     exit();
 }
+
 $id_reliquat = Tools::getValue('id_reliquat');
 $order_invoice =  new OrderInvoice($id_reliquat);
+
+
+$reliquat = new Ec_reliquat();
+$reliquat->totalizeReliquat($id_reliquat);
+//migrate order to quickbooks
+$quickbooks = new QuickbooksOnline();
+$quickbooks->getPdfInvoice($id_reliquat,0);
 //dump($order_invoice_collection);
 //echo PDF::TEMPLATE_DELIVERY_SLIP;
 $pdf = new PDF($order_invoice, PDF::TEMPLATE_DELIVERY_SLIP, Context::getContext()->smarty);
