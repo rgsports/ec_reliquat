@@ -348,6 +348,25 @@ class Ec_reliquat extends Module
                 //Tools::redirect($this->context->link->getAdminLink('AdminOrders').'&vieworder&id_order='.$id_order);
             }
         }
+        if (((bool)Tools::isSubmit('submitEcReliquatCancel')) == true) {
+            $products = Tools::getValue('products');
+            $cpt_prod = 0;
+            ob_start();
+            var_dump($products);
+            $result = ob_get_clean();
+            Db::getInstance()->insert('int_logs', array(
+              'text' => pSQL($result),
+              
+          ));
+            foreach ($products as $qty) {
+                $cpt_prod+=$qty;
+            }
+            if ($cpt_prod > 0) {
+                $this->addCancelProduct($id_order);
+                $this->changeOrderState($id_order);
+             //   Tools::redirectAdmin($this->context->link->getAdminLink('AdminOrders', true, $info_uri));
+            }
+        }
 
         $prods = Db::getInstance()->executeS('SELECT id_order_detail FROM '._DB_PREFIX_.'order_detail WHERE id_order = '.(int)$id_order);
      /*   if (count($prods) == 1) {
@@ -356,7 +375,7 @@ class Ec_reliquat extends Module
         $products = Db::getInstance()->executeS(
             '
             SELECT od.id_order_detail, product_id, product_attribute_id, product_name,product_supplier_reference, product_mpn, product_upc, product_ean13, product_quantity, product_reference,
-            (SELECT sum(quantity) FROM '._DB_PREFIX_.'ec_reliquat_product erp WHERE erp.id_order_detail = od.id_order_detail)as qty_ship
+            (SELECT sum(quantity) FROM '._DB_PREFIX_.'ec_reliquat_product erp WHERE erp.id_order_detail = od.id_order_detail)as qty_ship, (SELECT sum(quantity) FROM '._DB_PREFIX_.'ec_reliquat_product_cancel canc WHERE canc.id_order_detail = od.id_order_detail) as qty_cancel
             FROM '._DB_PREFIX_.'order_detail od
             WHERE id_order = '.(int)$id_order.'
             
@@ -367,7 +386,7 @@ class Ec_reliquat extends Module
             $id_product = $product['product_id'];
             $id_product_attribute = $product['product_attribute_id'];
             $product['quantity_available'] = StockAvailable::getQuantityAvailableByProduct($id_product, $id_product_attribute, $id_shop);
-            $product['class_badge'] = $product['product_quantity'] == $product['qty_ship'] ? 'success' : 'warning';
+            $product['class_badge'] = ($product['product_quantity']-$product['qty_cancel']) == $product['qty_ship'] ? 'success' : 'warning';
             $mpn =$product['product_mpn'];
             $product['warehouses'] = $this->productAvailableWh($mpn);
         }
@@ -382,9 +401,9 @@ class Ec_reliquat extends Module
             'ec_id_order' => $id_order,
             'ec_base_uri' => Tools::getHttpHost(true).__PS_BASE_URI__,
         ));
-        
+
         $html = $this->display(__FILE__, '/views/templates/admin/AdminOrder177.tpl');
-        
+
         $reliquats = Db::getInstance()->executeS(
             '
             SELECT id_order, id_reliquat, osl.name as order_state, c.name as carrier, tracking_number, date_add, er.id_carrier, er.id_order_state, weight, total_shipping
@@ -394,7 +413,7 @@ class Ec_reliquat extends Module
             WHERE id_order = '.(int)$id_order.'
             '
         );
-        
+
         foreach ($reliquats as &$reliquat) {
             $reliquat['products'] = Db::getInstance()->executeS(
                 '
@@ -452,6 +471,7 @@ class Ec_reliquat extends Module
                 Tools::redirect($this->context->link->getAdminLink('AdminOrders').'&vieworder&id_order='.$id_order);
             }
         }
+
 
         $prods = Db::getInstance()->executeS('SELECT id_order_detail FROM '._DB_PREFIX_.'order_detail WHERE id_order = '.(int)$id_order);
      /*   if (count($prods) == 1) {
@@ -529,7 +549,7 @@ class Ec_reliquat extends Module
         $products = Db::getInstance()->executeS(
             '
             SELECT od.id_order_detail, product_id, product_attribute_id, product_name, product_quantity, product_reference,
-            (SELECT sum(quantity) FROM '._DB_PREFIX_.'ec_reliquat_product erp WHERE erp.id_order_detail = od.id_order_detail)as qty_ship
+            (SELECT sum(quantity) FROM '._DB_PREFIX_.'ec_reliquat_product erp WHERE erp.id_order_detail = od.id_order_detail)as qty_ship, (SELECT sum(quantity) FROM '._DB_PREFIX_.'ec_reliquat_product_cancel canc WHERE canc.id_order_detail = od.id_order_detail) as qty_cancel
             FROM '._DB_PREFIX_.'order_detail od
             WHERE id_order = '.(int)$id_order.'
             
@@ -538,7 +558,8 @@ class Ec_reliquat extends Module
         
         $full_ship = 0;
         foreach ($products as &$product) {
-            $full_ship += (int)((int)$product['product_quantity']-(int)$product['qty_ship']);
+
+            $full_ship += (int)((int)$product['product_quantity']-(int)$product['qty_ship']-(int)$product['qty_cancel']);
         }
         
         if ($full_ship != 0) {
@@ -597,7 +618,7 @@ class Ec_reliquat extends Module
 //
     public function totalizeReliquat($id_reliquat)
     {
-     Db::getInstance()->executeS(
+       Db::getInstance()->executeS(
         '
         UPDATE
         ps_ec_reliquat
@@ -632,15 +653,15 @@ class Ec_reliquat extends Module
         ps_ec_reliquat.id_reliquat = '.(int)$id_reliquat.''
     );
 
-     Db::getInstance()->executeS(
+       Db::getInstance()->executeS(
         "
         INSERT INTO `ps_order_invoice` (id_order_invoice,`id_order`, `number`, `delivery_number`, `delivery_date`, `total_discount_tax_excl`, `total_discount_tax_incl`, `total_paid_tax_excl`, `total_paid_tax_incl`, `total_products`, `total_products_wt`, `total_shipping_tax_excl`, `total_shipping_tax_incl`, `shipping_tax_computation_method`, `total_wrapping_tax_excl`, `total_wrapping_tax_incl`, `shop_address`, `note`, `date_add`)
         SELECT
         ps_ec_reliquat.id_reliquat,  ps_ec_reliquat.id_order,  ps_ec_reliquat.id_reliquat,  ps_ec_reliquat.id_reliquat,  ps_ec_reliquat.date_add, 0, 0, `total_paid_tax_excl`, `total_paid_tax_incl`,  ps_ec_reliquat.`total_products`, `total_products_wt`, `total_shipping_tax_excl`, 0, 0, `total_wrapping_tax_excl`, `total_wrapping_tax_incl`, 'RG SPORTS', '', ps_ec_reliquat.date_add from ps_ec_reliquat LEFT JOIN ps_orders on ps_orders.id_order = ps_ec_reliquat.id_order WHERE ps_ec_reliquat.id_reliquat=  ".(int)$id_reliquat.' ON DUPLICATE KEY update  ps_order_invoice.total_paid_tax_excl = ps_orders.total_paid_tax_excl,ps_order_invoice.total_paid_tax_incl=ps_orders.total_paid_tax_incl, ps_order_invoice.`total_products` =  ps_ec_reliquat.`total_products`'
     );
- }
- public function updateReliquat($id_reliquat, $tracking_number, $id_carrier, $id_order_state, $id_order)
- {
+   }
+   public function updateReliquat($id_reliquat, $tracking_number, $id_carrier, $id_order_state, $id_order)
+   {
     Db::getinstance()->update(
         'ec_reliquat',
         array(
@@ -771,6 +792,35 @@ public static function addReliquatProduct($id_reliquat, $send_email = false, $id
   // }
 
 }
+
+public static function addCancelProduct($id_reliquat, $send_email = false, $id_order_state = null, $products = null)
+{
+
+    $cancelation_reason = Tools::getValue('cancelation_reason');
+
+
+
+    if ($products == null) {
+        $products = Tools::getValue('products');
+    }
+    $products_mail = array();
+
+
+    foreach ($products as $key=>$value) {
+
+        $id_order_detail= $key;
+        $quantity = $value;
+        if($quantity >0){
+            $sql = 'INSERT INTO `ps_ec_reliquat_product_cancel` (  `id_order_detail`, `quantity`, cancelation_reason)
+            VALUES
+            ( '.$id_order_detail.', '.$quantity.', \''.$cancelation_reason.'\')';
+            Db::getInstance()->executeS(
+                ''.$sql.''
+            );    
+        }
+    }
+}
+
 
 public function sendEmailReliquat($id_order, $id_order_state, $id_carrier, $products = null, $tracking_number = null)
 {
@@ -908,43 +958,78 @@ public function hookDisplayOrderDetail($params)
         $reliquat['attachments'] = Db::getInstance()->executeS('SELECT * FROM '._DB_PREFIX_.'ec_reliquat_attachment WHERE id_reliquat = '.(int)$reliquat['id_reliquat']);
     }
 
-    if ($reliquats) {
+    //product data
+    $prods = Db::getInstance()->executeS('SELECT id_order_detail FROM '._DB_PREFIX_.'order_detail WHERE id_order = '.(int)$id_order);
+     /*   if (count($prods) == 1) {
+            return;
+        }*/
+        $products = Db::getInstance()->executeS(
+            '
+            SELECT od.id_order_detail, product_id, product_attribute_id, product_name,product_supplier_reference, product_mpn, product_upc, product_ean13, product_quantity, product_reference,
+            (SELECT sum(quantity) FROM '._DB_PREFIX_.'ec_reliquat_product erp WHERE erp.id_order_detail = od.id_order_detail)as qty_ship, (SELECT sum(quantity) FROM '._DB_PREFIX_.'ec_reliquat_product_cancel canc WHERE canc.id_order_detail = od.id_order_detail) as qty_cancel
+            FROM '._DB_PREFIX_.'order_detail od
+            WHERE id_order = '.(int)$id_order.'
+            
+            '
+        );
+        $id_shop = (int)$this->context->shop->id;
+        foreach ($products as &$product) {
+            $id_product = $product['product_id'];
+            $id_product_attribute = $product['product_attribute_id'];
+            $product['quantity_available'] = StockAvailable::getQuantityAvailableByProduct($id_product, $id_product_attribute, $id_shop);
+            $product['class_badge'] = ($product['product_quantity']-$product['qty_cancel']) == $product['qty_ship'] ? 'success' : 'warning';
+            $mpn =$product['product_mpn'];
+            $product['warehouses'] = $this->productAvailableWh($mpn);
+            $product['reliquats'] = Db::getInstance()->executeS(
+                '
+                SELECT r.id_reliquat, r.date_add, r.tracking_number,  p.quantity
+                FROM '._DB_PREFIX_.'ec_reliquat_product p LEFT JOIN ps_ec_reliquat r on r.id_reliquat = p.id_reliquat
+                WHERE id_order_detail = '.(int)$product['id_order_detail'].'
+                '
+            );
+
+        }
+
+        $id_lang = (int)$this->context->language->id;
+
+
         $token = Configuration::get('EC_RELIQUAT_TOKEN');
         $this->smarty->assign(array(
             'reliquats' => $reliquats,
+            'products' => $products,
             'dl_script' => Tools::getHttpHost(true).__PS_BASE_URI__.'modules/ec_reliquat/dl.php?token='.$token,
             'link_delivery_slip' => Tools::getHttpHost(true).__PS_BASE_URI__.'modules/ec_reliquat/generateDeliverySlip.php?token='.$token,
         ));
         return $this->display(__FILE__, '/views/templates/admin/order_detail.tpl');
+
     }
-}
 
 
 
-            /**
+    /**
     * Add the CSS & JavaScript files you want to be loaded in the BO.
     */
-            public function hookActionAdminControllerSetMedia()
-            {
-                if (Tools::getValue('controller') == 'AdminOrders' && Tools::getValue('id_order') > 0) {
-                    Media::addJsDef(
-                        array(
-                            'ec_token' => Configuration::get('EC_RELIQUAT_TOKEN'), 
-                            'ec_id_order' => Tools::getValue('id_order'),
-                            'ec_base_uri' => Tools::getHttpHost(true).__PS_BASE_URI__,
-                        )
-                    );
-                    $this->context->controller->addJS($this->_path.'views/js/back.js');
-                    $this->context->controller->addCSS($this->_path.'views/css/back.css');
-                }
-            }
+    public function hookActionAdminControllerSetMedia()
+    {
+        if (Tools::getValue('controller') == 'AdminOrders' && Tools::getValue('id_order') > 0) {
+            Media::addJsDef(
+                array(
+                    'ec_token' => Configuration::get('EC_RELIQUAT_TOKEN'), 
+                    'ec_id_order' => Tools::getValue('id_order'),
+                    'ec_base_uri' => Tools::getHttpHost(true).__PS_BASE_URI__,
+                )
+            );
+            $this->context->controller->addJS($this->_path.'views/js/back.js');
+            $this->context->controller->addCSS($this->_path.'views/css/back.css');
+        }
+    }
 
-            /**
+    /**
      * Add the CSS & JavaScript files you want to be added on the FO.
      */
-            public function hookHeader()
-            {
-                $this->context->controller->addJS($this->_path.'/views/js/front.js');
-                $this->context->controller->addCSS($this->_path.'/views/css/front.css');
-            }
-        }
+    public function hookHeader()
+    {
+        $this->context->controller->addJS($this->_path.'/views/js/front.js');
+        $this->context->controller->addCSS($this->_path.'/views/css/front.css');
+    }
+}

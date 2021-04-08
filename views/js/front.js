@@ -26,24 +26,39 @@
 * to avoid any conflicts with others containers.
 */
 $(document).ready(function () {
-    //$(location).attr('href', 'http://www.google.fr')
+    // //$(location).attr('href', 'http://www.google.fr')
+    // $('body').on('click','#ec_reliquat_orderdetail .showProdsReliquat', function(e) {
+    //     e.preventDefault();
+    //     id_reliquat = $(this).attr('data-id');
+    //     $('.reliquat_attachments').hide();
+    //     $('.showAttsReliquat i ').html('add');
+    //     icon = $(this).children('i').html().trim();
+    //     if (icon == 'add') {
+    //         $(this).children('i').html('remove');
+    //     } else {
+    //         $(this).children('i').html('add');
+    //     }
+    //     if ($('#ec_reliquat_orderdetail #products'+id_reliquat).css('display') == 'none') {
+    //         $('#ec_reliquat_orderdetail #products'+id_reliquat).show();
+    //     } else {
+    //         $('#ec_reliquat_orderdetail #products'+id_reliquat).hide();
+    //     }
+    // });
     $('body').on('click','#ec_reliquat_orderdetail .showProdsReliquat', function(e) {
-        e.preventDefault();
-        id_reliquat = $(this).attr('data-id');
-        $('.reliquat_attachments').hide();
-        $('.showAttsReliquat i ').html('add');
-        icon = $(this).children('i').html().trim();
-        if (icon == 'add') {
-            $(this).children('i').html('remove');
-        } else {
-            $(this).children('i').html('add');
-        }
-        if ($('#ec_reliquat_orderdetail #products'+id_reliquat).css('display') == 'none') {
-            $('#ec_reliquat_orderdetail #products'+id_reliquat).show();
-        } else {
-            $('#ec_reliquat_orderdetail #products'+id_reliquat).hide();
-        }
-    });
+       e.preventDefault();
+       id_order_detail = $(this).attr('data-id');
+       icon = $(this).children('i').html().trim();
+       if (icon == 'add') {
+        $(this).children('i').html('remove');
+    } else {
+        $(this).children('i').html('add');
+    }
+    if ($('#ec_reliquat_orderdetail #reliquats'+id_order_detail).css('display') == 'none') {
+        $('#ec_reliquat_orderdetail #reliquats'+id_order_detail).show();
+    } else {
+        $('#ec_reliquat_orderdetail #reliquats'+id_order_detail).hide();
+    }
+});
     
     $('body').on('click','#ec_reliquat_orderdetail .showAttsReliquat', function(e) {
         e.preventDefault();
