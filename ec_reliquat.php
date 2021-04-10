@@ -817,6 +817,11 @@ public static function addCancelProduct($id_reliquat, $send_email = false, $id_o
             Db::getInstance()->executeS(
                 ''.$sql.''
             );    
+             $sql = 'UPDATE ps_order_detail od left join (SELECT id_order_detail, sum(quantity) as cancelled_product from  ps_ec_reliquat_product_cancel group by id_order_detail ) cp on od.id_order_detail = cp.id_order_detail set product_quantity_refunded = cancelled_product where od.id_order_detail = 
+            '.$id_order_detail;
+            Db::getInstance()->executeS(
+                ''.$sql.''
+            );    
         }
     }
 }
