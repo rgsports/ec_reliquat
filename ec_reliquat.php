@@ -352,7 +352,7 @@ class Ec_reliquat extends Module
             $products = Tools::getValue('products');
             $cpt_prod = 0;
             ob_start();
-            var_dump($products);
+            // var_dump($products);
             $result = ob_get_clean();
             Db::getInstance()->insert('int_logs', array(
               'text' => pSQL($result),
@@ -426,7 +426,7 @@ class Ec_reliquat extends Module
             $reliquat['attachments'] = Db::getInstance()->executeS('SELECT * FROM '._DB_PREFIX_.'ec_reliquat_attachment WHERE id_reliquat = '.(int)$reliquat['id_reliquat']);
         }
         if ($reliquats) {
-            var_dump($reliquats);
+            // var_dump($reliquats);
 
             $token = Configuration::get('EC_RELIQUAT_TOKEN');
             $this->smarty->assign(array(
@@ -618,7 +618,7 @@ class Ec_reliquat extends Module
 //
     public function totalizeReliquat($id_reliquat)
     {
-       Db::getInstance()->executeS(
+     Db::getInstance()->executeS(
         '
         UPDATE
         ps_ec_reliquat
@@ -653,15 +653,21 @@ class Ec_reliquat extends Module
         ps_ec_reliquat.id_reliquat = '.(int)$id_reliquat.''
     );
 
-       Db::getInstance()->executeS(
+     Db::getInstance()->executeS(
         "
         INSERT INTO `ps_order_invoice` (id_order_invoice,`id_order`, `number`, `delivery_number`, `delivery_date`, `total_discount_tax_excl`, `total_discount_tax_incl`, `total_paid_tax_excl`, `total_paid_tax_incl`, `total_products`, `total_products_wt`, `total_shipping_tax_excl`, `total_shipping_tax_incl`, `shipping_tax_computation_method`, `total_wrapping_tax_excl`, `total_wrapping_tax_incl`, `shop_address`, `note`, `date_add`)
         SELECT
         ps_ec_reliquat.id_reliquat,  ps_ec_reliquat.id_order,  ps_ec_reliquat.id_reliquat,  ps_ec_reliquat.id_reliquat,  ps_ec_reliquat.date_add, 0, 0, `total_paid_tax_excl`, `total_paid_tax_incl`,  ps_ec_reliquat.`total_products`, `total_products_wt`, `total_shipping_tax_excl`, 0, 0, `total_wrapping_tax_excl`, `total_wrapping_tax_incl`, 'RG SPORTS', '', ps_ec_reliquat.date_add from ps_ec_reliquat LEFT JOIN ps_orders on ps_orders.id_order = ps_ec_reliquat.id_order WHERE ps_ec_reliquat.id_reliquat=  ".(int)$id_reliquat.' ON DUPLICATE KEY update  ps_order_invoice.total_paid_tax_excl = ps_orders.total_paid_tax_excl,ps_order_invoice.total_paid_tax_incl=ps_orders.total_paid_tax_incl, ps_order_invoice.`total_products` =  ps_ec_reliquat.`total_products`'
     );
-   }
-   public function updateReliquat($id_reliquat, $tracking_number, $id_carrier, $id_order_state, $id_order)
-   {
+       //SEND INVOICE TO QUICKBOOKS
+     require_once dirname(__FILE__) . '/../quickbooks_online/quickbooks_online.php';
+     $quickbooks = new QuickbooksOnline();
+     $quickbooks->syncOrderToQuickbooks(null, $id_reliquat);
+
+
+ }
+ public function updateReliquat($id_reliquat, $tracking_number, $id_carrier, $id_order_state, $id_order)
+ {
     Db::getinstance()->update(
         'ec_reliquat',
         array(
@@ -682,6 +688,7 @@ class Ec_reliquat extends Module
         }
         $this->sendEmailReliquat($id_order, $id_order_state, $id_carrier, $products_mail, $tracking_number);
     }
+    $this->totalizeReliquat($id_reliquat);
 }
 
 public function deleteAttachment($cle)
@@ -816,12 +823,13 @@ public static function addCancelProduct($id_reliquat, $send_email = false, $id_o
             ( '.$id_order_detail.', '.$quantity.', \''.$cancelation_reason.'\')';
             Db::getInstance()->executeS(
                 ''.$sql.''
-            );    
-             $sql = 'UPDATE ps_order_detail od left join (SELECT id_order_detail, sum(quantity) as cancelled_product from  ps_ec_reliquat_product_cancel group by id_order_detail ) cp on od.id_order_detail = cp.id_order_detail set product_quantity_refunded = cancelled_product where od.id_order_detail = 
+            );
+            $sql = 'UPDATE ps_order_detail od left join (SELECT id_order_detail, sum(quantity) as cancelled_product from  ps_ec_reliquat_product_cancel group by id_order_detail ) cp on od.id_order_detail = cp.id_order_detail set product_quantity_refunded = cancelled_product where od.id_order_detail = 
             '.$id_order_detail;
             Db::getInstance()->executeS(
                 ''.$sql.''
-            );    
+            );       
+            echo $sql; 
         }
     }
 }
