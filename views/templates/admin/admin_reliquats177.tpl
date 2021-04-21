@@ -25,7 +25,7 @@
             {foreach $reliquats as $reliquat}
             <tr>
                <td class="td-reliquat">{$reliquat.id_reliquat}</td>
-               <td class="text-center td-reliquat">{$reliquat.tracking_number}
+               <td class="text-center td-reliquat">{if isset($reliquat.tracking_url)}<a target="_blank" href="{$reliquat.tracking_url}">{$reliquat.tracking_number}</a>{else}{$reliquat.tracking_number}{/if}
                    <br />
                    <button name="products" class="btn btn-default" type="button" onclick="ShowProducts({$reliquat.id_reliquat}); return false;">{l s='Products' mod='ec_reliquat'}
                        {if $reliquat['attachments']} <button name="products" class="btn btn-default" type="button" onclick="ShowAttachments({$reliquat.id_reliquat}); return false;">{l s='Attachments' mod='ec_reliquat'}</button>{/if}
@@ -34,6 +34,7 @@
                    <td class="text-center td-reliquat">{$reliquat.order_state}</td>
                    <td class="text-center td-reliquat">{$reliquat.weight}</td>
                    <td class="text-center td-reliquat">{$reliquat.total_shipping}</td>
+
                    <td class="text-center td-reliquat">{$reliquat.date_add} <a href="{$link_delivery_slip}&id_order={$reliquat.id_order}&id_reliquat={$reliquat.id_reliquat}"><i class="material-icons">cloud_download</i></a></td>
                    <td><button type="button" data-info_reliquat='{$reliquat|json_encode}' class="editreliquat btn btn-info btn-lg" data-toggle="modal" data-target="#editreliquat">{l s='Edit' mod='ec_reliquat'}</button></td>
                </tr>
