@@ -1,24 +1,3 @@
-    <script>
-        var clicked = false;
-        function createReliquat () {
-          // Will only start if clicked is false
-
-          document.getElementById("submitEcReliquat").disabled = true;
-
-          var form =document.getElementById('shipform');
-          if (form.checkValidity()){
-            form.submit();
-        }else{
-            alert("Verificar formulario / cantidades");
-            document.getElementById("submitEcReliquat").disabled = false;
-
-        }
-
-
-
-    }
-</script>
-
 <div id="ec_reliquat" class="card">
     <div class="card-header">
         <h3 class="card-header-title">
@@ -26,8 +5,7 @@
         </h3>
     </div>
     <div class="card-body">
-        <form action="{$url_form}" method="post" name="shipform" id="shipform" enctype="multipart/form-data">
-
+        <form action="{$url_form}" method="post"  name="shipform" enctype="multipart/form-data">
             <table class="table">
                 <thead>
                     <tr class="nodrag nodrop">
@@ -72,10 +50,10 @@
                             <input type="number" id="quantity_shipped_{$product.id_order_detail}" name="products[{$product.id_order_detail}-qty]" value="{$product.product_quantity-$product.qty_cancel-$product.qty_ship}" max="{$product.product_quantity-$product.qty_cancel-$product.qty_ship}" min="0">
                         </td>
                         <td>
-                           {if !empty($product.warehouses)}
+                         {if !empty($product.warehouses)}
 
-                           <select id="" name="products[{$product.id_order_detail}-wh]" class="warehouse-select">
-                            <option value="1" selected="selected">{l s='Select Warehouse' mod='wkwarehouses'}</option>
+                         <select id="" name="products[{$product.id_order_detail}-wh]" class="warehouse-select">
+                            <option value="0" selected="selected">{l s='Select Warehouse' mod='wkwarehouses'}</option>
                             {foreach from=$product.warehouses item='warehouse'}
                             <option value="{$warehouse['warehouse_id']|intval}" >{$warehouse['title']|escape:'html':'UTF-8'} ({$warehouse['qty']})</option>
                             {/foreach}
@@ -176,11 +154,8 @@
                         </div>
                         <div class="col-lg-9">
                             <input type="hidden" name="id_order" value="{$ec_id_order}">
-                            <input type="hidden" name="submitEcReliquatShip" value="true">
-
-                            <button type="submit" id="submitEcReliquat"  name="submitEcReliquat" class="btn btn-primary pull-left" onclick="javascript:createReliquat();"  style="margin-top: 10px;">Enviar</button>
+                            <button type="submit" name="submitEcReliquatShip" class="btn btn-primary pull-left" onclick="this.disabled=true;document.getElementsByName("shipform")[0].submit();"  style="margin-top: 10px;">Envoyer</button>
                         </div>
-
                     </div>
                 </div>
             </div>
