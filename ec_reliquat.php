@@ -384,6 +384,7 @@ class Ec_reliquat extends Module
         $id_shop = (int)$this->context->shop->id;
         foreach ($products as &$product) {
             $id_product = $product['product_id'];
+            $product_mpn = $product['product_mpn'];
             $id_product_attribute = $product['product_attribute_id'];
             $product['quantity_available'] = StockAvailable::getQuantityAvailableByProduct($id_product, $id_product_attribute, $id_shop);
             $product['class_badge'] = ($product['product_quantity']-$product['qty_cancel']) == $product['qty_ship'] ? 'success' : 'warning';
@@ -406,7 +407,7 @@ class Ec_reliquat extends Module
 
         $reliquats = Db::getInstance()->executeS(
             '
-            SELECT id_order, id_reliquat, osl.name as order_state, c.name as carrier, tracking_number, date_add, er.id_carrier, er.id_order_state, weight, total_shipping
+            SELECT id_order, id_reliquat, osl.name as order_state, c.name as carrier, tracking_number, date_add, er.id_carrier, er.id_order_state, weight, total_shipping, total_products_cost as cost, total_products as sprice, (total_products-total_products_cost) as profit, ((total_products-total_products_cost)/total_products_cost) as margin
             FROM '._DB_PREFIX_.'ec_reliquat er
             LEFT JOIN '._DB_PREFIX_.'carrier c ON (er.id_carrier = c.id_carrier)
             LEFT JOIN '._DB_PREFIX_.'order_state_lang osl ON (osl.id_order_state = er.id_order_state AND id_lang = '.(int)$id_lang.')
@@ -418,10 +419,11 @@ class Ec_reliquat extends Module
         foreach ($reliquats as &$reliquat) {
             $reliquat['products'] = Db::getInstance()->executeS(
                 '
-                SELECT id_reliquat_product, quantity, product_id, product_attribute_id, product_name, product_reference
+                SELECT id_reliquat_product, quantity, product_id, product_attribute_id, product_name, product_supplier_reference, product_mpn, product_reference, IF(whl.name IS NOT NULL,whl.name, "Proveedor") as warehouse
                 FROM '._DB_PREFIX_.'ec_reliquat_product erp
+                LEFT JOIN '._DB_PREFIX_.'warehouse_lang whl ON erp.id_warehouse = whl.id_warehouse 
                 LEFT JOIN '._DB_PREFIX_.'order_detail od ON (od.id_order_detail = erp.id_order_detail)
-                WHERE id_reliquat = '.(int)$reliquat['id_reliquat'].'
+                WHERE id_reliquat = '.(int)$reliquat['id_reliquat'].' and whl.id_lang = '.(int)$id_lang.'
                 '
             );
             $reliquat['attachments'] = Db::getInstance()->executeS('SELECT * FROM '._DB_PREFIX_.'ec_reliquat_attachment WHERE id_reliquat = '.(int)$reliquat['id_reliquat']);
@@ -435,7 +437,7 @@ class Ec_reliquat extends Module
         }
         if ($reliquats) {
             // var_dump($reliquats);
-
+            var_dump($reliquats);
             $token = Configuration::get('EC_RELIQUAT_TOKEN');
             $this->smarty->assign(array(
                 'reliquats' => $reliquats,
