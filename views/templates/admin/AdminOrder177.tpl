@@ -1,5 +1,7 @@
     <script>
+        var clicked = false;
         function createReliquat () {
+          // Will only start if clicked is false
 
           document.getElementById("submitEcReliquat").disabled = true;
 
@@ -70,10 +72,10 @@
                             <input type="number" id="quantity_shipped_{$product.id_order_detail}" name="products[{$product.id_order_detail}-qty]" value="{$product.product_quantity-$product.qty_cancel-$product.qty_ship}" max="{$product.product_quantity-$product.qty_cancel-$product.qty_ship}" min="0">
                         </td>
                         <td>
-                           {if !empty($product.warehouses)}
+                         {if !empty($product.warehouses)}
 
-                           <select id="" name="products[{$product.id_order_detail}-wh]" class="warehouse-select">
-                            <option value="0" selected="selected">{l s='Select Warehouse' mod='wkwarehouses'}</option>
+                         <select id="" name="products[{$product.id_order_detail}-wh]" class="warehouse-select">
+                            <option value="1" selected="selected">{l s='Select Warehouse' mod='wkwarehouses'}</option>
                             {foreach from=$product.warehouses item='warehouse'}
                             <option value="{$warehouse['warehouse_id']|intval}" >{$warehouse['title']|escape:'html':'UTF-8'} ({$warehouse['qty']})</option>
                             {/foreach}
@@ -106,7 +108,7 @@
                         <div class="col-lg-9">
                             <div class="form-group">
                                 <label class="form-control-label" for="ec_trackingNumber">{l s='Tracking number' mod='ec_reliquat'}</label>
-                                <input type="text" id="ec_trackingNumber" name="trackingNumber" class="form-control" placeholder="XXXXXXXXX">
+                                <input type="text" id="ec_trackingNumber" name="trackingNumber" class="form-control"  maxlength="31" placeholder="XXXXXXXXX">
                                 <small class="form-text">{l s='This field is not required. You can shipped product without tracking number.' mod='ec_reliquat'}</small>
                             </div>
                         </div>
