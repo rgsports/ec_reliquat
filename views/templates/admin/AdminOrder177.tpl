@@ -1,3 +1,24 @@
+    <script>
+        var clicked = false;
+        function createReliquat () {
+          // Will only start if clicked is false
+
+          document.getElementById("submitEcReliquat").disabled = true;
+
+          var form =document.getElementById('shipform');
+          if (form.checkValidity()){
+            form.submit();
+        }else{
+            alert("Verificar formulario / cantidades");
+            document.getElementById("submitEcReliquat").disabled = false;
+
+        }
+
+
+
+    }
+</script>
+
 <div id="ec_reliquat" class="card">
     <div class="card-header">
         <h3 class="card-header-title">
@@ -5,7 +26,8 @@
         </h3>
     </div>
     <div class="card-body">
-        <form action="{$url_form}" method="post"  name="shipform" enctype="multipart/form-data">
+        <form action="{$url_form}" method="post" name="shipform" id="shipform" enctype="multipart/form-data">
+
             <table class="table">
                 <thead>
                     <tr class="nodrag nodrop">
@@ -53,7 +75,7 @@
                          {if !empty($product.warehouses)}
 
                          <select id="" name="products[{$product.id_order_detail}-wh]" class="warehouse-select">
-                            <option value="0" selected="selected">{l s='Select Warehouse' mod='wkwarehouses'}</option>
+                            <option value="1" selected="selected">{l s='Select Warehouse' mod='wkwarehouses'}</option>
                             {foreach from=$product.warehouses item='warehouse'}
                             <option value="{$warehouse['warehouse_id']|intval}" >{$warehouse['title']|escape:'html':'UTF-8'} ({$warehouse['qty']})</option>
                             {/foreach}
@@ -86,7 +108,7 @@
                         <div class="col-lg-9">
                             <div class="form-group">
                                 <label class="form-control-label" for="ec_trackingNumber">{l s='Tracking number' mod='ec_reliquat'}</label>
-                                <input type="text" id="ec_trackingNumber" name="trackingNumber" class="form-control" placeholder="XXXXXXXXX">
+                                <input type="text" id="ec_trackingNumber" name="trackingNumber" class="form-control"  maxlength="31" placeholder="XXXXXXXXX">
                                 <small class="form-text">{l s='This field is not required. You can shipped product without tracking number.' mod='ec_reliquat'}</small>
                             </div>
                         </div>
@@ -154,8 +176,11 @@
                         </div>
                         <div class="col-lg-9">
                             <input type="hidden" name="id_order" value="{$ec_id_order}">
-                            <button type="submit" name="submitEcReliquatShip" class="btn btn-primary pull-left" onclick="this.disabled=true;document.getElementsByName("shipform")[0].submit();"  style="margin-top: 10px;">Envoyer</button>
+                            <input type="hidden" name="submitEcReliquatShip" value="true">
+
+                            <button type="submit" id="submitEcReliquat"  name="submitEcReliquat" class="btn btn-primary pull-left" onclick="javascript:createReliquat();"  style="margin-top: 10px;">Enviar</button>
                         </div>
+
                     </div>
                 </div>
             </div>
@@ -179,10 +204,9 @@
                         <th></th>
                         <th class="left"><span class="title_box">{l s='Product name' mod='ec_reliquat'}</span></th>
                         <th class="text-center"><span class="title_box">{l s='Ordenados' mod='ec_reliquat'}</span></th>
-                        <th class="text-center">{l s='Cancelado' mod='ec_reliquat'}</th>                        
                         <th class="text-center">{l s='Enviado' mod='ec_reliquat'}</th>  
-                        <th class="text-center">{l s='Cantidad a cancelar' mod='ec_reliquat'}</th>
-                        <th><strong>{l s='Warehouse' mod='wkwarehouses'}</strong></th>
+                        <th class="text-center">{l s='Cancelado' mod='ec_reliquat'}</th>                        
+                        <th class="text-center">{l s='Cancelar' mod='ec_reliquat'}</th>
 
                         <th></th>
                     </tr>
@@ -202,19 +226,24 @@
 
                         <td class="productQuantity text-center" width="10%">
                             <span class="product_quantity_show badge">{$product.product_quantity}</span>
-                        </td>
-                        <td class="productCancel text-center" width="10%">
-                            <span class="badge badge-warning">{$product.qty_cancel}</span>
+
                         </td>
                         <td class="productQuantity text-center" width="10%">
                             <span class="badge badge-{$product.class_badge}">{$product.qty_ship}</span>
                         </td>
-                        {if $product.product_quantity-$product.qty_cancel != $product.qty_ship}
+                        <td class="productCancel text-center" width="10%">
+                            <span class="badge badge-warning">{$product.qty_cancel}</span>
+                        </td>
+                        
                         <td class="text-center" width="15%">
-                            <input type="number" id="quantity_shipped_{$product.id_order_detail}" name="products[{$product.id_order_detail}]" value="0" max="{$product.product_quantity-$product.qty_cancel-$product.qty_ship}" min="0">
+
+                            {if $product.product_quantity-$product.qty_cancel != $product.qty_ship || $product.qty_cancel > 0 }
+                            <input type="number" id="quantity_shipped_{$product.id_order_detail}" name="products[{$product.id_order_detail}]" value="0" max="{$product.product_quantity-$product.qty_cancel-$product.qty_ship}" min="{0-$product.qty_cancel}">
+
+                            {/if}
                         </td>
 
-                        {/if}
+
                     </tr>
                     {/foreach}
                 </tbody>
@@ -238,7 +267,7 @@
 
                             <div class="col-lg-9">
                                 <input type="hidden" name="id_order" value="{$ec_id_order}">
-                                <button type="submit" name="submitEcReliquatCancel" class="btn btn-primary pull-left" onclick="this.disabled=true;document.getElementsByName("cancelform")[0].submit();"  style="margin-top: 10px;" >Cancelar</button>
+                                <button type="submit" name="submitEcReliquatCancel" class="btn btn-primary pull-left" onclick="this.disabled=true;document.getElementsByName("cancelform")[0].submit();"  style="margin-top: 10px;" >Cancelar/Des-cancelar</button>
                             </div>
                         </div>
                     </div>
@@ -248,4 +277,3 @@
     </form>
 </div>
 </div>
-

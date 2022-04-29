@@ -351,19 +351,19 @@ class Ec_reliquat extends Module
         if (((bool)Tools::isSubmit('submitEcReliquatCancel')) == true) {
             $products = Tools::getValue('products');
             $cpt_prod = 0;
-            ob_start();
-            // var_dump($products);
-            $result = ob_get_clean();
-            Db::getInstance()->insert('int_logs', array(
-              'text' => pSQL($result),
-              
-          ));
+
             foreach ($products as $qty) {
                 $cpt_prod+=$qty;
             }
-            if ($cpt_prod > 0) {
+            if ($cpt_prod != 0) {
                 $this->addCancelProduct($id_order);
                 $this->changeOrderState($id_order);
+                $info_uri = array(
+                    'route' => 'admin_orders_view',
+                    'orderId' => $id_order,
+                );
+                Tools::redirectAdmin($this->context->link->getAdminLink('AdminOrders', true, $info_uri));
+
              //   Tools::redirectAdmin($this->context->link->getAdminLink('AdminOrders', true, $info_uri));
             }
         }
@@ -384,6 +384,7 @@ class Ec_reliquat extends Module
         $id_shop = (int)$this->context->shop->id;
         foreach ($products as &$product) {
             $id_product = $product['product_id'];
+            $product_mpn = $product['product_mpn'];
             $id_product_attribute = $product['product_attribute_id'];
             $product['quantity_available'] = StockAvailable::getQuantityAvailableByProduct($id_product, $id_product_attribute, $id_shop);
             $product['class_badge'] = ($product['product_quantity']-$product['qty_cancel']) == $product['qty_ship'] ? 'success' : 'warning';
@@ -406,7 +407,7 @@ class Ec_reliquat extends Module
 
         $reliquats = Db::getInstance()->executeS(
             '
-            SELECT id_order, id_reliquat, osl.name as order_state, c.name as carrier, tracking_number, date_add, er.id_carrier, er.id_order_state, weight, total_shipping
+            SELECT id_order, id_reliquat, osl.name as order_state, c.name as carrier, tracking_number, date_add, er.id_carrier, er.id_order_state, weight, total_shipping, total_products_cost as cost, total_products as sprice, (total_products-total_products_cost) as profit, ((total_products-total_products_cost)/total_products_cost) as margin
             FROM '._DB_PREFIX_.'ec_reliquat er
             LEFT JOIN '._DB_PREFIX_.'carrier c ON (er.id_carrier = c.id_carrier)
             LEFT JOIN '._DB_PREFIX_.'order_state_lang osl ON (osl.id_order_state = er.id_order_state AND id_lang = '.(int)$id_lang.')
@@ -414,20 +415,29 @@ class Ec_reliquat extends Module
             '
         );
 
+
         foreach ($reliquats as &$reliquat) {
             $reliquat['products'] = Db::getInstance()->executeS(
                 '
-                SELECT id_reliquat_product, quantity, product_id, product_attribute_id, product_name, product_reference
+                SELECT id_reliquat_product, quantity, product_id, product_attribute_id, product_name, product_supplier_reference, product_mpn, product_reference, IF(whl.name IS NOT NULL,whl.name, "Proveedor") as warehouse
                 FROM '._DB_PREFIX_.'ec_reliquat_product erp
+                LEFT JOIN '._DB_PREFIX_.'warehouse_lang whl ON erp.id_warehouse = whl.id_warehouse 
                 LEFT JOIN '._DB_PREFIX_.'order_detail od ON (od.id_order_detail = erp.id_order_detail)
-                WHERE id_reliquat = '.(int)$reliquat['id_reliquat'].'
+                WHERE id_reliquat = '.(int)$reliquat['id_reliquat'].' and whl.id_lang = '.(int)$id_lang.'
                 '
             );
             $reliquat['attachments'] = Db::getInstance()->executeS('SELECT * FROM '._DB_PREFIX_.'ec_reliquat_attachment WHERE id_reliquat = '.(int)$reliquat['id_reliquat']);
+            if (Tools::strlen($reliquat['tracking_number']) > 0) {
+                $carrier = new Carrier ($reliquat['id_carrier']);
+
+                if (Tools::strlen($carrier->url) > 0) {
+                    $reliquat['tracking_url'] = str_replace('@', $reliquat['tracking_number'], $carrier->url);
+                }
+            }
         }
         if ($reliquats) {
             // var_dump($reliquats);
-
+            var_dump($reliquats);
             $token = Configuration::get('EC_RELIQUAT_TOKEN');
             $this->smarty->assign(array(
                 'reliquats' => $reliquats,
@@ -549,7 +559,7 @@ class Ec_reliquat extends Module
         $products = Db::getInstance()->executeS(
             '
             SELECT od.id_order_detail, product_id, product_attribute_id, product_name, product_quantity, product_reference,
-            (SELECT sum(quantity) FROM '._DB_PREFIX_.'ec_reliquat_product erp WHERE erp.id_order_detail = od.id_order_detail)as qty_ship, (SELECT sum(quantity) FROM '._DB_PREFIX_.'ec_reliquat_product_cancel canc WHERE canc.id_order_detail = od.id_order_detail) as qty_cancel
+            (SELECT IFNULL(sum(quantity),0) FROM '._DB_PREFIX_.'ec_reliquat_product erp WHERE erp.id_order_detail = od.id_order_detail)as qty_ship, (SELECT IFNULL(sum(quantity),0) FROM '._DB_PREFIX_.'ec_reliquat_product_cancel canc WHERE canc.id_order_detail = od.id_order_detail) as qty_cancel
             FROM '._DB_PREFIX_.'order_detail od
             WHERE id_order = '.(int)$id_order.'
             
@@ -657,7 +667,7 @@ class Ec_reliquat extends Module
         "
         INSERT INTO `ps_order_invoice` (id_order_invoice,`id_order`, `number`, `delivery_number`, `delivery_date`, `total_discount_tax_excl`, `total_discount_tax_incl`, `total_paid_tax_excl`, `total_paid_tax_incl`, `total_products`, `total_products_wt`, `total_shipping_tax_excl`, `total_shipping_tax_incl`, `shipping_tax_computation_method`, `total_wrapping_tax_excl`, `total_wrapping_tax_incl`, `shop_address`, `note`, `date_add`)
         SELECT
-        ps_ec_reliquat.id_reliquat,  ps_ec_reliquat.id_order,  ps_ec_reliquat.id_reliquat,  ps_ec_reliquat.id_reliquat,  ps_ec_reliquat.date_add, 0, 0, `total_paid_tax_excl`, `total_paid_tax_incl`,  ps_ec_reliquat.`total_products`, `total_products_wt`, `total_shipping_tax_excl`, 0, 0, `total_wrapping_tax_excl`, `total_wrapping_tax_incl`, 'RG SPORTS', '', ps_ec_reliquat.date_add from ps_ec_reliquat LEFT JOIN ps_orders on ps_orders.id_order = ps_ec_reliquat.id_order WHERE ps_ec_reliquat.id_reliquat=  ".(int)$id_reliquat.' ON DUPLICATE KEY update  ps_order_invoice.total_paid_tax_excl = ps_orders.total_paid_tax_excl,ps_order_invoice.total_paid_tax_incl=ps_orders.total_paid_tax_incl, ps_order_invoice.`total_products` =  ps_ec_reliquat.`total_products`'
+        ps_ec_reliquat.id_reliquat,  ps_ec_reliquat.id_order,  ps_ec_reliquat.id_reliquat,  ps_ec_reliquat.id_reliquat,  ps_ec_reliquat.date_add, 0, 0, `total_paid_tax_excl`, `total_paid_tax_incl`,  ps_ec_reliquat.`total_products`, `total_products_wt`, `total_shipping_tax_excl`, 0, 0, `total_wrapping_tax_excl`, `total_wrapping_tax_incl`, 'RG SPORTS', '', ps_ec_reliquat.date_add from ps_ec_reliquat LEFT JOIN ps_orders on ps_orders.id_order = ps_ec_reliquat.id_order WHERE ps_ec_reliquat.id_reliquat=  ".(int)$id_reliquat.' ON DUPLICATE KEY update  ps_order_invoice.total_paid_tax_excl = ps_orders.total_paid_tax_excl,ps_order_invoice.total_paid_tax_incl=ps_orders.total_paid_tax_incl, ps_order_invoice.`total_products` =  ps_ec_reliquat.`total_products`, ps_order_invoice.id_order= ps_ec_reliquat.id_order'
     );
        //SEND INVOICE TO QUICKBOOKS
      require_once dirname(__FILE__) . '/../quickbooks_online/quickbooks_online.php';
@@ -800,7 +810,7 @@ public static function addReliquatProduct($id_reliquat, $send_email = false, $id
 
 }
 
-public static function addCancelProduct($id_reliquat, $send_email = false, $id_order_state = null, $products = null)
+public  function addCancelProduct($id_reliquat, $send_email = false, $id_order_state = null, $products = null)
 {
 
     $cancelation_reason = Tools::getValue('cancelation_reason');
@@ -812,12 +822,45 @@ public static function addCancelProduct($id_reliquat, $send_email = false, $id_o
     }
     $products_mail = array();
 
+  //   ob_start();
+  //   var_dump($products);
+  //   $result = ob_get_clean();
+  //   Db::getInstance()->insert('int_logs', array(
+  //     'text' => pSQL($result),
+
+  // ));
+
 
     foreach ($products as $key=>$value) {
 
+
+
         $id_order_detail= $key;
         $quantity = $value;
-        if($quantity >0){
+
+        //check how many there are to determine if to allow insert or not
+        $items = Db::getInstance()->executeS(
+            '
+            SELECT od.id_order_detail, product_id, product_attribute_id, product_name, product_quantity, product_reference,
+            (SELECT IFNULL(sum(quantity),0) FROM '._DB_PREFIX_.'ec_reliquat_product erp WHERE erp.id_order_detail = od.id_order_detail)as qty_ship, (SELECT IFNULL(sum(quantity),0) FROM '._DB_PREFIX_.'ec_reliquat_product_cancel canc WHERE canc.id_order_detail = od.id_order_detail) as qty_cancel
+            FROM '._DB_PREFIX_.'order_detail od
+            WHERE id_order_detail = '.(int)$id_order_detail.'
+            
+            '
+        );
+        $items = $items[0];
+        
+        if (((int)$items['qty_cancel']+ (int)$items['qty_ship'] + $quantity)  <=  (int)$items['product_quantity']){
+
+
+            // $sql = 'INSERT INTO `int_logs` (  `text`)
+            // VALUES
+            // ( \''.$items['qty_cancel'].'\')';
+            // Db::getInstance()->executeS(
+            //     ''.$sql.''
+            // );
+
+
             $sql = 'INSERT INTO `ps_ec_reliquat_product_cancel` (  `id_order_detail`, `quantity`, cancelation_reason)
             VALUES
             ( '.$id_order_detail.', '.$quantity.', \''.$cancelation_reason.'\')';
@@ -828,10 +871,13 @@ public static function addCancelProduct($id_reliquat, $send_email = false, $id_o
             '.$id_order_detail;
             Db::getInstance()->executeS(
                 ''.$sql.''
-            );       
-            echo $sql; 
-        }
+            );   
+        }    
+
     }
+    $this->changeOrderState($id_reliquat);
+
+
 }
 
 
@@ -963,9 +1009,10 @@ public function hookDisplayOrderDetail($params)
             '
         );
         if (Tools::strlen($reliquat['tracking_number']) > 0) {
-            $carrier = new Carrier($reliquat['id_carrier']);
+            $carrier = new Carrier ($reliquat['id_carrier']);
+
             if (Tools::strlen($carrier->url) > 0) {
-                $reliquat['tracking_url'] = str_replace('@', $reliquat['tracking_number'], $carrier->url);
+                $reliquat['tracking_url'] =str_replace('@', $reliquat['tracking_number'], $carrier->url);;
             }
         }
         $reliquat['attachments'] = Db::getInstance()->executeS('SELECT * FROM '._DB_PREFIX_.'ec_reliquat_attachment WHERE id_reliquat = '.(int)$reliquat['id_reliquat']);
