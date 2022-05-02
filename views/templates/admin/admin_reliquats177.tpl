@@ -15,12 +15,11 @@
                 </th>
                 <th class="text-center"><span class="title_box">{l s='Carrier' mod='ec_reliquat'}</span></th>
                 <th class="text-center"><span class="title_box">{l s='Current state' mod='ec_reliquat'}</span></th>
+                <th class="text-center"><span class="title_box">{l s='Total' mod='ec_reliquat'}</span></th>
+
                 <th class="text-center"><span class="title_box">{l s='Peso' mod='ec_reliquat'}</span></th>
-                <th class="text-center"><span class="title_box">{l s='Total Cost' mod='ec_reliquat'}</span></th>
-                <th class="text-center"><span class="title_box">{l s='Total Products' mod='ec_reliquat'}</span></th>
-                <th class="text-center"><span class="title_box">{l s='Profit' mod='ec_reliquat'}</span></th>
-                <th class="text-center"><span class="title_box">{l s='Margin' mod='ec_reliquat'}</span></th>
-                <th class="text-center"><span class="title_box">{l s='Valor Envio' mod='ec_reliquat'}</span></th>
+                <th class="text-center"><span class="title_box">{l s='Envio' mod='ec_reliquat'}</span></th>
+                <th class="text-center"><span class="title_box">{l s='Ganancia' mod='ec_reliquat'}</span></th>
                 <th class="text-center">{l s='Delivery slip' mod='ec_reliquat'}</th>
                 <th></th>
             </tr>
@@ -36,86 +35,129 @@
                  </td>
                  <td class="text-center td-reliquat">{$reliquat.carrier}</td>
                  <td class="text-center td-reliquat">{$reliquat.order_state}</td>
-                 <td class="text-center td-reliquat">{$reliquat.weight}</td>
-                 <td class="text-center td-reliquat">{$reliquat.cost}</td>
-                 <td class="text-center td-reliquat">{$reliquat.sprice}</td>
-                 <td class="text-center td-reliquat">{$reliquat.profit}</td>
-                 <td class="text-center td-reliquat">{$reliquat.margin}</td>
-                 <td class="text-center td-reliquat">{$reliquat.total_shipping}</td>
+                 <td class="text-center td-reliquat">{$reliquat.sprice+$reliquat.total_shipping}</td>
 
-                 <td class="text-center td-reliquat">{$reliquat.date_add} <a href="{$link_delivery_slip}&id_order={$reliquat.id_order}&id_reliquat={$reliquat.id_reliquat}"><i class="material-icons">cloud_download</i></a></td>
-                 <td><button type="button" data-info_reliquat='{$reliquat|json_encode}' class="editreliquat btn btn-info btn-lg" data-toggle="modal" data-target="#editreliquat">{l s='Edit' mod='ec_reliquat'}</button></td>
-             </tr>
-             <tr style="width: 100%; display: none;" id="products{$reliquat.id_reliquat}">
-                <td colspan="8" style="width:100%">
-                    <table style="width: 80%;" class="table" >
-                        <thead>
-                            <tr>
-                                <th style="width:15%;">&nbsp;</th>
-                                <th style="width:15%;">&nbsp;</th>
-                                
-                                <th style="width:50%;"><span class="title_box ">{l s='Product' mod='ec_reliquat'}</span></th>
-                                <th style="width:50%;"><span class="title_box ">{l s='Part Number' mod='ec_reliquat'}</span></th>
-                                <th style="width:10%;"><span class="title_box ">{l s='Quantity' mod='ec_reliquat'}</span></th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {foreach $reliquat['products'] as $product}
-                            <tr class="product-line-row" height="52">
-                                <td>{l s='Shipped Product' mod='ec_reliquat'}<br> <span> Warehouse: {$product['warehouse']}</span></td>
-                                <td><img src="{$ec_base_uri}/img/tmp/product_mini_{$product['product_id']}_{$product['product_attribute_id']}.jpg?time=1554738725" alt="" class="imgm img-thumbnail"></td>
-                                <td  style="color:#00aff0;">
-                                    <span class="productName">{$product['product_name']}</span><br>
-                                    {$product['product_reference']}<br>
-                                    
-                                    
-                                    <span class="productName"></span>                                                          
-                                </td>
-                                <td class="product-line-row">{$product['product_mpn']} <br> {$product['product_supplier_reference']}</td>
-                                <td class="productQuantity">
-                                    <span class="product_quantity_show red bold">{$product['quantity']}</span>
-                                </td>                  
-                            </tr>
-                            {/foreach}
-                        </tbody>
-                    </table>
-                </td>
+                 <td class="text-center td-reliquat">{$reliquat.weight}</td>
+                 <td class="text-center td-reliquat">{$reliquat.total_shipping}</td>
+                 <td class="text-center">
+                    <b>Margen:{$reliquat.margin*100}%</b><br>
+                    Ganancia: {$reliquat.profit}<br>
+                    Costo Productos: {$reliquat.cost}<br>
+                Venta Productos: {$reliquat.sprice}</td>
+
+
+
+
+                <td class="text-center td-reliquat">{$reliquat.date_add} <a href="{$link_delivery_slip}&id_order={$reliquat.id_order}&id_reliquat={$reliquat.id_reliquat}"><i class="material-icons">cloud_download</i></a></td>
+                <td><button type="button" data-info_reliquat='{$reliquat|json_encode}' class="editreliquat btn btn-info btn-lg" data-toggle="modal" data-target="#editreliquat">{l s='Edit' mod='ec_reliquat'}</button></td>
             </tr>
-            <tr style="display: none;" id="attachments{$reliquat.id_reliquat}">
+            <tr style="width: 100%; display: none;" id="products{$reliquat.id_reliquat}">
                 <td colspan="8" style="width:100%">
-                    <table style="width: 80%;" class="table" >
-                        <thead>
-                            <tr>
-                                <th style="width:30%;"><span class="title_box ">{l s='Filename' mod='ec_reliquat'}</span></th>
-                                <th style="width:10%;"><span class="title_box ">{l s='Extension' mod='ec_reliquat'}</span></th>
-                                <th><span class="title_box ">{l s='Type' mod='ec_reliquat'}</span></th>
-                                <th><span class="title_box ">{l s='Add date' mod='ec_reliquat'}</span></th>
-                                <th><span class="title_box ">{l s='Download date' mod='ec_reliquat'}</span></th>
-                                <th>&nbsp;</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {foreach $reliquat['attachments'] as $attachement}
-                            <tr class="product-line-row" height="52">
-                                <td>{$attachement['name']}</td>
-                                <td  >
-                                    <span class="productName">{$attachement['extension']}</span>                                                        
-                                </td>
-                                <td class="productQuantity">
-                                    <span class="product_quantity_show red bold">{$attachement['type']}</span>
-                                </td>
-                                <td class="productQuantity product_stock">{$attachement['date_add']}</td>                        
-                                <td class="productQuantity product_stock">{$attachement['date_download']}</td>
-                                <td class="productQuantity product_stock"><a title="{l s='Donwload' mod='ec_reliquat'}" href="{$dl_script}&k={$attachement['cle']}"><i class="material-icons">cloud_download</i></a><a class="deleteattachment" data-cle="{$attachement['cle']}" title="{l s='Delete' mod='ec_reliquat'}" href="#"><i class="material-icons">delete</i></a></td>  
-                            </tr>
-                            {/foreach}
-                        </tbody>
-                    </table>
-                </td>
-            </tr>
-            {/foreach}
-        </tbody>
-    </table>
+                    <form action="{$url_form}" method="post" name="qtyeditform" id="shipform" enctype="multipart/form-data">
+
+                        <table style="width: 80%;" class="table" >
+                            <thead>
+                                <tr>
+                                    <th style="width:15%;">&nbsp;</th>
+                                    <th style="width:15%;">&nbsp;</th>
+
+                                    <th style="width:50%;"><span class="title_box ">{l s='Product' mod='ec_reliquat'}</span></th>
+                                    <th style="width:50%;"><span class="title_box ">{l s='Part Number' mod='ec_reliquat'}</span></th>
+                                    <th style="width:10%;"><span class="title_box ">{l s='Quantity' mod='ec_reliquat'}</span></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+
+                                {foreach $reliquat['products'] as $product}
+                                <tr class="product-line-row" height="52">
+                                    <td>{l s='Shipped Product' mod='ec_reliquat'}<br> <span> Warehouse: {$product['warehouse']}</span></td>
+                                    <td><img src="{$ec_base_uri}/img/tmp/product_mini_{$product['product_id']}_{$product['product_attribute_id']}.jpg?time=1554738725" alt="" class="imgm img-thumbnail"></td>
+                                    <td  style="color:#00aff0;">
+                                        <span class="productName">{$product['product_name']}</span><br>
+                                        {$product['product_reference']}<br>
+
+
+                                        <span class="productName"></span>                                                          
+                                    </td>
+                                    <td class="product-line-row">{$product['product_mpn']} <br> {$product['product_supplier_reference']}</td>
+                                    <td class="productQuantity">
+                                        <span class="product_quantity_show red bold">{$product['quantity']}</span>
+                                    </td>  
+{*                             edit section
+
+   *}                               
+
+   {if $reliquat.id_order_state == 20}
+   <td class="text-center" width="15%">
+    <input type="number" id="quantity_shipped_{$product.id_order_detail}" name="products[{$product.id_order_detail}-qty]" value="{$product['quantity']}"  min="0">
+</td>   
+<td>
+    <select id="" name="products[{$product.id_order_detail}-wh]" class="warehouse-select">
+        <option value="{$product['id_warehouse']}" selected="selected">{$product['warehouse']}</option>
+        {foreach from=$product.warehouses item='warehouse'}
+        <option value="{$warehouse['warehouse_id']|intval}" >{$warehouse['title']|escape:'html':'UTF-8'} ({$warehouse['qty']})</option>
+        {/foreach}
+    </select>
+</td>
+{/if}
+
+                                {*                         end    edit section
+                                   *}                               
+                               </tr>
+                               {/foreach}
+                           </tbody>
+                       </table>
+                       {if $reliquat.id_order_state == 20}
+
+                       <div class="col-lg-9">
+                        <label  for="ec_edit_notes">{l s='Razon de Edicion' mod='ec_reliquat'}</label>
+                        <input type="text" id="ec_edit_notes" name="edit_notes" maxlength="255"  required class="form-control" placeholder="">
+                        <input type="hidden" name="id_reliquat" value="{$reliquat.id_reliquat}">
+                        <input type="hidden" name="submitEcReliquatQtyEdit" value="true">
+
+                        <button type="submit" id="submitEcReliquat"  name="submitEcReliquat" class="btn btn-primary pull-left" onclick="this.disabled=true; document.getElementsByName("qtyeditform")[0].submit();"  style="margin-top: 10px;">Editar Cantidades</button>
+                    </div>
+                    {/if}
+                </form>
+            </td>
+        </tr>
+        
+        
+        <tr style="display: none;" id="attachments{$reliquat.id_reliquat}">
+            <td colspan="8" style="width:100%">
+                <table style="width: 80%;" class="table" >
+                    <thead>
+                        <tr>
+                            <th style="width:30%;"><span class="title_box ">{l s='Filename' mod='ec_reliquat'}</span></th>
+                            <th style="width:10%;"><span class="title_box ">{l s='Extension' mod='ec_reliquat'}</span></th>
+                            <th><span class="title_box ">{l s='Type' mod='ec_reliquat'}</span></th>
+                            <th><span class="title_box ">{l s='Add date' mod='ec_reliquat'}</span></th>
+                            <th><span class="title_box ">{l s='Download date' mod='ec_reliquat'}</span></th>
+                            <th>&nbsp;</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {foreach $reliquat['attachments'] as $attachement}
+                        <tr class="product-line-row" height="52">
+                            <td>{$attachement['name']}</td>
+                            <td  >
+                                <span class="productName">{$attachement['extension']}</span>                                                        
+                            </td>
+                            <td class="productQuantity">
+                                <span class="product_quantity_show red bold">{$attachement['type']}</span>
+                            </td>
+                            <td class="productQuantity product_stock">{$attachement['date_add']}</td>                        
+                            <td class="productQuantity product_stock">{$attachement['date_download']}</td>
+                            <td class="productQuantity product_stock"><a title="{l s='Donwload' mod='ec_reliquat'}" href="{$dl_script}&k={$attachement['cle']}"><i class="material-icons">cloud_download</i></a><a class="deleteattachment" data-cle="{$attachement['cle']}" title="{l s='Delete' mod='ec_reliquat'}" href="#"><i class="material-icons">delete</i></a></td>  
+                        </tr>
+                        {/foreach}
+                    </tbody>
+                </table>
+            </td>
+        </tr>
+        {/foreach}
+    </tbody>
+</table>
 
 </div>
 
@@ -163,10 +205,15 @@
                     </div>
                 </div>
             </div>
-            <div class="modal-footer">
-                <button id="closereliquat" type="button" class="btn btn-default" data-dismiss="modal">{l s='Close' mod='ec_reliquat'}</button>
-                <button id="btneditreliquat" class="btn btn-primary">{l s='Edit' mod='ec_reliquat'}</button>
-            </div>
+            {* edit items form *}
+
+
+        </div>
+        {*end edit items*}
+        <div class="modal-footer">
+            <button id="closereliquat" type="button" class="btn btn-default" data-dismiss="modal">{l s='Close' mod='ec_reliquat'}</button>
+            <button id="btneditreliquat" class="btn btn-primary">{l s='Edit' mod='ec_reliquat'}</button>
         </div>
     </div>
+</div>
 </div>

@@ -368,6 +368,32 @@ class Ec_reliquat extends Module
             }
         }
 
+        if (((bool)Tools::isSubmit('submitEcReliquatQtyEdit')) == true) {
+
+
+           // $test = Db::getInstance()->executeS("INSERT INTO int_logs (text) values ('$id_employee')");
+
+            $products = Tools::getValue('products');
+
+            $cpt_prod = 0;
+            foreach ($products as $qty) {
+                $cpt_prod+=$qty;
+            }
+            if ($cpt_prod > 0  ) {
+                $this->editReliquat($id_order);
+                $this->changeOrderState($id_order);
+                $info_uri = array(
+                    'route' => 'admin_orders_view',
+                    'orderId' => $id_order,
+                );
+                Tools::redirectAdmin($this->context->link->getAdminLink('AdminOrders', true, $info_uri));
+                //Tools::redirect($this->context->link->getAdminLink('AdminOrders').'&vieworder&id_order='.$id_order);
+            }
+            
+        }
+
+        
+
         $prods = Db::getInstance()->executeS('SELECT id_order_detail FROM '._DB_PREFIX_.'order_detail WHERE id_order = '.(int)$id_order);
      /*   if (count($prods) == 1) {
             return;
@@ -419,11 +445,11 @@ class Ec_reliquat extends Module
         foreach ($reliquats as &$reliquat) {
             $reliquat['products'] = Db::getInstance()->executeS(
                 '
-                SELECT id_reliquat_product, quantity, product_id, product_attribute_id, product_name, product_supplier_reference, product_mpn, product_reference, IF(whl.name IS NOT NULL,whl.name, "Proveedor") as warehouse
+                SELECT id_reliquat_product, quantity, product_id, od.id_order_detail, product_attribute_id, product_name, whl.id_warehouse , product_supplier_reference, product_mpn, product_reference, IF(whl.name IS NOT NULL,whl.name, "Proveedor") as warehouse
                 FROM '._DB_PREFIX_.'ec_reliquat_product erp
-                LEFT JOIN '._DB_PREFIX_.'warehouse_lang whl ON erp.id_warehouse = whl.id_warehouse 
+                LEFT JOIN '._DB_PREFIX_.'warehouse whl ON erp.id_warehouse = whl.id_warehouse 
                 LEFT JOIN '._DB_PREFIX_.'order_detail od ON (od.id_order_detail = erp.id_order_detail)
-                WHERE id_reliquat = '.(int)$reliquat['id_reliquat'].' and whl.id_lang = '.(int)$id_lang.'
+                WHERE id_reliquat = '.(int)$reliquat['id_reliquat'].'
                 '
             );
             $reliquat['attachments'] = Db::getInstance()->executeS('SELECT * FROM '._DB_PREFIX_.'ec_reliquat_attachment WHERE id_reliquat = '.(int)$reliquat['id_reliquat']);
@@ -437,7 +463,7 @@ class Ec_reliquat extends Module
         }
         if ($reliquats) {
             // var_dump($reliquats);
-            var_dump($reliquats);
+            //var_dump($reliquats);
             $token = Configuration::get('EC_RELIQUAT_TOKEN');
             $this->smarty->assign(array(
                 'reliquats' => $reliquats,
@@ -606,6 +632,33 @@ class Ec_reliquat extends Module
         // );
         $this->totalizeReliquat($id_reliquat);
     }
+    public function editReliquat($id_order)
+    {
+        $id_reliquat = Tools::getValue('id_reliquat');
+        $notes = Tools::getValue('edit_notes');
+
+        $id_employee = Context::getContext()->employee->id;
+//if employee allowed (only miguel and andrea allowed)
+        if ($id_employee == 1 || $id_employee == 9 ){
+
+
+            self::editReliquatProduct($id_reliquat, $send_email, $id_order_state);
+
+            $this->totalizeReliquat($id_reliquat);
+            //log edit info
+            Db::getInstance()->insert(
+                'ec_reliquat_edit',
+                array(
+                    'id_reliquat' => (int)$id_reliquat,
+                    'id_employee' => (int)$id_employee,
+                    'notes' => pSQL($notes),
+                    'date_add' => pSQL(date('Y-m-d H:i:s'))
+                )
+            );
+
+        }
+
+    }
 
     public static function insertReliquat($id_order, $id_order_state, $id_carrier, $tracking_number)
     {
@@ -698,7 +751,7 @@ class Ec_reliquat extends Module
         }
         $this->sendEmailReliquat($id_order, $id_order_state, $id_carrier, $products_mail, $tracking_number);
     }
-    $this->totalizeReliquat($id_reliquat);
+    //$this->totalizeReliquat($id_reliquat);
 }
 
 public function deleteAttachment($cle)
@@ -725,6 +778,122 @@ public static function addReliquatProduct($id_reliquat, $send_email = false, $id
         if (strpos($key, 'qty')){
             $quantity = $value;
         }
+        $sql = 'INSERT INTO `ps_ec_reliquat_product` ( `id_reliquat`, `id_order_detail`, `quantity`, `id_warehouse`)
+        VALUES
+        ( '.$id_reliquat.', '.$id_order_detail.', '.$quantity.', '.$id_warehouse.')
+        ON DUPLICATE KEY UPDATE
+        quantity ='.$quantity.',
+        id_warehouse = '.$id_warehouse;
+        Db::getInstance()->executeS(
+            ''.$sql.''
+        );    
+    }
+    //remove items at 0
+    Db::getInstance()->executeS(
+        'DELETE FROM ps_ec_reliquat_product where id_reliquat = '.$id_reliquat.' and quantity = 0'
+    );    
+//take out from inventory
+    Db::getInstance()->executeS(
+        'UPDATE geopos_products left join vu_items_summary on item_sid = vu_items_summary.rg_id LEFT JOIN  ps_order_detail ON ps_order_detail.product_mpn = vu_items_summary.mfg_pn LEFT JOIN ps_ec_reliquat_product  on ps_ec_reliquat_product.id_order_detail = ps_order_detail.id_order_detail and geopos_products.warehouse = ps_ec_reliquat_product.id_warehouse  SET geopos_products.qty = geopos_products.qty-ps_ec_reliquat_product.quantity where ps_ec_reliquat_product.id_warehouse != 0 and id_reliquat = '.$id_reliquat.''
+    ); 
+
+    // ob_start();
+    // var_dump($products);
+    // $result = ob_get_clean();
+
+    // Db::getinstance()->insert(
+    //     'ec_reliquat_product',
+    //     array(
+
+    //         'text'=> pSQL($result.$sql)
+    //     )
+    // );
+
+    // foreach ($products as $id_order_detail => $quantity) {
+    //     if ($quantity > 0) {
+    //         Db::getinstance()->insert(
+    //             'ec_reliquat_product',
+    //             array(
+    //                 'id_reliquat'=> (int)$id_reliquat,
+    //                 'id_order_detail'=> (int)$id_order_detail,
+    //                 'quantity'=> (int)$quantity
+    //             )
+    //         );
+    //     }
+  //   // }
+  //   ob_start();
+  //   var_dump($products);
+  //   $result = ob_get_clean();
+
+  //   if ($products['quantity'] > 0) {
+  //     $id_order_detail =$products['id_order_detail'];
+  //     $id_warehouse   = $products['id_warehouse'];
+  //     $quantity  =$products['quantity'];
+  //     Db::getinstance()->insert(
+  //       'ec_reliquat_product',
+  //       array(
+  //           'id_reliquat'=> (int)$id_reliquat,
+  //           'id_order_detail'=> (int)$id_order_detail,
+  //           'id_warehouse'=> (int)$id_warehouse,
+  //           'quantity'=>(int)$quantity,
+  //           'text'=> $result
+  //       )
+  //   );
+  // }
+  //   ob_start();
+  //   var_dump($products);
+  //   $result = ob_get_clean();
+  //   foreach ($products as $product) {
+  //       if ($product['quantity'] > 0) {
+  //         $id_order_detail =$product['id_order_detail'];
+  //         $id_warehouse   = $product['id_warehouse'];
+  //         $quantity  =$product['quantity'];
+  //         Db::getinstance()->insert(
+  //           'ec_reliquat_product',
+  //           array(
+  //               'id_reliquat'=> (int)$id_reliquat,
+  //               'id_order_detail'=> (int)$id_order_detail,
+  //               'id_warehouse'=> (int)$id_warehouse,
+  //               'quantity'=>(int)$quantity,
+  //               'text'=> $result
+  //           )
+  //       );
+  //     }
+  // }
+
+}
+
+public  function editReliquatProduct($id_reliquat, $send_email = false, $id_order_state = null, $products = null)
+{
+   // $debug = var_export($my_var, true);
+
+
+    if ($products == null) {
+        $products = Tools::getValue('products');
+    }
+    $products_mail = array();
+
+
+
+    foreach ($products as $key=>$value) {
+        //    $debug = var_export($products, true);
+
+        $productinfo =  explode('-', $key);
+        $id_order_detail= $productinfo[0];
+
+        if (strpos($key, 'wh')){
+            $id_warehouse = $value;
+        }
+
+        if (strpos($key, 'qty')){
+            $quantity = $value;
+        }
+        // $test = Db::getInstance()->executeS("INSERT INTO int_logs (text) values ('$id_order_detail')");
+
+        // $test = Db::getInstance()->executeS("INSERT INTO int_logs (text) values ('$quantity')");
+        // $test = Db::getInstance()->executeS("INSERT INTO int_logs (text) values ('$id_warehouse')");
+
+
         $sql = 'INSERT INTO `ps_ec_reliquat_product` ( `id_reliquat`, `id_order_detail`, `quantity`, `id_warehouse`)
         VALUES
         ( '.$id_reliquat.', '.$id_order_detail.', '.$quantity.', '.$id_warehouse.')
@@ -850,7 +1019,7 @@ public  function addCancelProduct($id_reliquat, $send_email = false, $id_order_s
         );
         $items = $items[0];
         
-        if (((int)$items['qty_cancel']+ (int)$items['qty_ship'] + $quantity)  <=  (int)$items['product_quantity']){
+        if (((int)$items['qty_cancel'] + $quantity)  <=  (int)$items['product_quantity']-(int)$items['qty_ship']-(int)$items['qty_cancel'] && ((int)$items['qty_cancel'] + $quantity) >=0 ){
 
 
             // $sql = 'INSERT INTO `int_logs` (  `text`)
