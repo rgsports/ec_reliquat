@@ -38,6 +38,8 @@
                         <th class="text-center">{l s='Cancelado' mod='ec_reliquat'}</th>                        
                         <th class="text-center">{l s='Enviado' mod='ec_reliquat'}</th>  
                         <th class="text-center">{l s='Quantity shipped today' mod='ec_reliquat'}</th>
+                        <th class="text-center">{l s='Weight / Peso' mod='ec_reliquat'}</th>
+
                         <th><strong>{l s='Warehouse' mod='wkwarehouses'}</strong></th>
 
                         <th></th>
@@ -70,6 +72,9 @@
                         {if $product.product_quantity-$product.qty_cancel != $product.qty_ship}
                         <td class="text-center" width="15%">
                             <input type="number" id="quantity_shipped_{$product.id_order_detail}" name="products[{$product.id_order_detail}-qty]" value="{$product.product_quantity-$product.qty_cancel-$product.qty_ship}" max="{$product.product_quantity-$product.qty_cancel-$product.qty_ship}" min="0">
+                        </td>
+                        <td class="text-center" width="15%">
+                            <input type="number" id="product_weight{$product.product_weight}" readonly="readonly" name="products[{$product.id_order_detail}-weight]" step=".01" value="{$product['product_weight']}"  min="0">
                         </td>
                         <td>
                          {if !empty($product.warehouses)}
@@ -277,3 +282,5 @@
     </form>
 </div>
 </div>
+
+

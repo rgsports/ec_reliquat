@@ -16,7 +16,6 @@
                 <th class="text-center"><span class="title_box">{l s='Carrier' mod='ec_reliquat'}</span></th>
                 <th class="text-center"><span class="title_box">{l s='Current state' mod='ec_reliquat'}</span></th>
                 <th class="text-center"><span class="title_box">{l s='Total' mod='ec_reliquat'}</span></th>
-
                 <th class="text-center"><span class="title_box">{l s='Peso' mod='ec_reliquat'}</span></th>
                 <th class="text-center"><span class="title_box">{l s='Envio' mod='ec_reliquat'}</span></th>
                 <th class="text-center"><span class="title_box">{l s='Ganancia' mod='ec_reliquat'}</span></th>
@@ -27,19 +26,19 @@
         <tbody>
             {foreach $reliquats as $reliquat}
             <tr>
-             <td class="td-reliquat">{$reliquat.id_reliquat}</td>
-             <td class="text-center td-reliquat">{if isset($reliquat.tracking_url)}<a target="_blank" href="{$reliquat.tracking_url}">{$reliquat.tracking_number}</a>{else}{$reliquat.tracking_number}{/if}
-                 <br />
-                 <button name="products" class="btn btn-default" type="button" onclick="ShowProducts({$reliquat.id_reliquat}); return false;">{l s='Products' mod='ec_reliquat'}
-                     {if $reliquat['attachments']} <button name="products" class="btn btn-default" type="button" onclick="ShowAttachments({$reliquat.id_reliquat}); return false;">{l s='Attachments' mod='ec_reliquat'}</button>{/if}
-                 </td>
-                 <td class="text-center td-reliquat">{$reliquat.carrier}</td>
-                 <td class="text-center td-reliquat">{$reliquat.order_state}</td>
-                 <td class="text-center td-reliquat">{$reliquat.sprice+$reliquat.total_shipping}</td>
+               <td class="td-reliquat">{$reliquat.id_reliquat}</td>
+               <td class="text-center td-reliquat">{if isset($reliquat.tracking_url)}<a target="_blank" href="{$reliquat.tracking_url}">{$reliquat.tracking_number}</a>{else}{$reliquat.tracking_number}{/if}
+                   <br />
+                   <button name="products" class="btn btn-default" type="button" onclick="ShowProducts({$reliquat.id_reliquat}); return false;">{l s='Products' mod='ec_reliquat'}
+                       {if $reliquat['attachments']} <button name="products" class="btn btn-default" type="button" onclick="ShowAttachments({$reliquat.id_reliquat}); return false;">{l s='Attachments' mod='ec_reliquat'}</button>{/if}
+                   </td>
+                   <td class="text-center td-reliquat">{$reliquat.carrier}</td>
+                   <td class="text-center td-reliquat">{$reliquat.order_state}</td>
+                   <td class="text-center td-reliquat">{$reliquat.sprice+$reliquat.total_shipping}</td>
 
-                 <td class="text-center td-reliquat">{$reliquat.weight}</td>
-                 <td class="text-center td-reliquat">{$reliquat.total_shipping}</td>
-                 <td class="text-center">
+                   <td class="text-center td-reliquat">{$reliquat.weight}</td>
+                   <td class="text-center td-reliquat">{$reliquat.total_shipping}</td>
+                   <td class="text-center">
                     <b>Margen:{$reliquat.margin*100}%</b><br>
                     Ganancia: {$reliquat.profit}<br>
                     Costo Productos: {$reliquat.cost}<br>
@@ -64,6 +63,9 @@
                                     <th style="width:50%;"><span class="title_box ">{l s='Product' mod='ec_reliquat'}</span></th>
                                     <th style="width:50%;"><span class="title_box ">{l s='Part Number' mod='ec_reliquat'}</span></th>
                                     <th style="width:10%;"><span class="title_box ">{l s='Quantity' mod='ec_reliquat'}</span></th>
+                                    <th style="width:10%;"></th>
+                                    <th style="width:10%;"></th>
+                                    <th style="width:10%;"><span class="title_box ">{l s='Weight' mod='ec_reliquat'}</span></th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -85,10 +87,10 @@
                                     </td>  
 {*                             edit section
 
-   *}                               
+ *}                               
 
-   {if $reliquat.id_order_state == 20}
-   <td class="text-center" width="15%">
+ {if $reliquat.id_order_state == 20}
+ <td class="text-center" width="15%">
     <input type="number" id="quantity_shipped_{$product.id_order_detail}" name="products[{$product.id_order_detail}-qty]" value="{$product['quantity']}"  min="0">
 </td>   
 <td>
@@ -99,17 +101,19 @@
         {/foreach}
     </select>
 </td>
+<td class="text-center" width="15%">
+    <input type="number" id="product_weight{$product.product_weight}" name="products[{$product.id_order_detail}-weight]" step=".01" value="{$product['product_weight']}"  min="0">
+</td>
 {/if}
-
                                 {*                         end    edit section
-                                   *}                               
-                               </tr>
-                               {/foreach}
-                           </tbody>
-                       </table>
-                       {if $reliquat.id_order_state == 20}
+                                 *}                               
+                             </tr>
+                             {/foreach}
+                         </tbody>
+                     </table>
+                     {if $reliquat.id_order_state == 20}
 
-                       <div class="col-lg-9">
+                     <div class="col-lg-9">
                         <label  for="ec_edit_notes">{l s='Razon de Edicion' mod='ec_reliquat'}</label>
                         <input type="text" id="ec_edit_notes" name="edit_notes" maxlength="255"  required class="form-control" placeholder="">
                         <input type="hidden" name="id_reliquat" value="{$reliquat.id_reliquat}">
@@ -204,6 +208,8 @@
                         </div>
                     </div>
                 </div>
+                <button id="closereliquat" type="button" class="btn btn-default" data-dismiss="modal">{l s='Close' mod='ec_reliquat'}</button>
+                <button id="btneditreliquat" class="btn btn-primary">{l s='Edit' mod='ec_reliquat'}</button>
             </div>
             {* edit items form *}
 
@@ -211,8 +217,7 @@
         </div>
         {*end edit items*}
         <div class="modal-footer">
-            <button id="closereliquat" type="button" class="btn btn-default" data-dismiss="modal">{l s='Close' mod='ec_reliquat'}</button>
-            <button id="btneditreliquat" class="btn btn-primary">{l s='Edit' mod='ec_reliquat'}</button>
+
         </div>
     </div>
 </div>

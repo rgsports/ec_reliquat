@@ -383,13 +383,13 @@ class Ec_reliquat extends Module
               //  $test = Db::getInstance()->executeS("INSERT INTO int_logs (text) values ('$id_order')");
 
 
-                $this->editReliquat($id_order);
-                $this->changeOrderState($id_order);
-                $info_uri = array(
-                    'route' => 'admin_orders_view',
-                    'orderId' => $id_order,
-                );
-                Tools::redirectAdmin($this->context->link->getAdminLink('AdminOrders', true, $info_uri));
+            $this->editReliquat($id_order);
+            $this->changeOrderState($id_order);
+            $info_uri = array(
+                'route' => 'admin_orders_view',
+                'orderId' => $id_order,
+            );
+            Tools::redirectAdmin($this->context->link->getAdminLink('AdminOrders', true, $info_uri));
                 //Tools::redirect($this->context->link->getAdminLink('AdminOrders').'&vieworder&id_order='.$id_order);
             //}
             
@@ -403,7 +403,7 @@ class Ec_reliquat extends Module
         }*/
         $products = Db::getInstance()->executeS(
             '
-            SELECT od.id_order_detail, product_id, product_attribute_id, product_name,product_supplier_reference, product_mpn, product_upc, product_ean13, product_quantity, product_reference,
+            SELECT od.id_order_detail, product_id, product_attribute_id, product_name,product_supplier_reference, product_mpn, product_upc, product_ean13, product_quantity, product_reference, product_weight,
             (SELECT sum(quantity) FROM '._DB_PREFIX_.'ec_reliquat_product erp WHERE erp.id_order_detail = od.id_order_detail)as qty_ship, (SELECT sum(quantity) FROM '._DB_PREFIX_.'ec_reliquat_product_cancel canc WHERE canc.id_order_detail = od.id_order_detail) as qty_cancel
             FROM '._DB_PREFIX_.'order_detail od
             WHERE id_order = '.(int)$id_order.'
@@ -448,7 +448,7 @@ class Ec_reliquat extends Module
         foreach ($reliquats as &$reliquat) {
             $reliquat['products'] = Db::getInstance()->executeS(
                 '
-                SELECT id_reliquat_product, quantity, product_id, od.id_order_detail, product_attribute_id, product_name, whl.id_warehouse , product_supplier_reference, product_mpn, product_reference, IF(whl.name IS NOT NULL,whl.name, "Proveedor") as warehouse
+                SELECT id_reliquat_product, quantity, product_id, od.id_order_detail, product_attribute_id, product_name, whl.id_warehouse , product_supplier_reference, product_mpn, product_reference, od.product_weight, IF(whl.name IS NOT NULL,whl.name, "Proveedor") as warehouse
                 FROM '._DB_PREFIX_.'ec_reliquat_product erp
                 LEFT JOIN '._DB_PREFIX_.'warehouse whl ON erp.id_warehouse = whl.id_warehouse 
                 LEFT JOIN '._DB_PREFIX_.'order_detail od ON (od.id_order_detail = erp.id_order_detail)
@@ -643,7 +643,7 @@ class Ec_reliquat extends Module
         $id_employee = Context::getContext()->employee->id;
 
 //if employee allowed (only miguel and andrea allowed)
-        if ($id_employee == 1 || $id_employee == 9 ){
+        if ($id_employee == 1 || $id_employee == 9 || $id_employee == 2 ){
 
 
             self::editReliquatProduct($id_reliquat, $send_email, $id_order_state);
@@ -685,7 +685,7 @@ class Ec_reliquat extends Module
 //
     public function totalizeReliquat($id_reliquat)
     {
-       Db::getInstance()->executeS(
+     Db::getInstance()->executeS(
         '
         UPDATE
         ps_ec_reliquat
@@ -720,21 +720,21 @@ class Ec_reliquat extends Module
         ps_ec_reliquat.id_reliquat = '.(int)$id_reliquat.''
     );
 
-       Db::getInstance()->executeS(
+     Db::getInstance()->executeS(
         "
         INSERT INTO `ps_order_invoice` (id_order_invoice,`id_order`, `number`, `delivery_number`, `delivery_date`, `total_discount_tax_excl`, `total_discount_tax_incl`, `total_paid_tax_excl`, `total_paid_tax_incl`, `total_products`, `total_products_wt`, `total_shipping_tax_excl`, `total_shipping_tax_incl`, `shipping_tax_computation_method`, `total_wrapping_tax_excl`, `total_wrapping_tax_incl`, `shop_address`, `note`, `date_add`)
         SELECT
         ps_ec_reliquat.id_reliquat,  ps_ec_reliquat.id_order,  ps_ec_reliquat.id_reliquat,  ps_ec_reliquat.id_reliquat,  ps_ec_reliquat.date_add, 0, 0, `total_paid_tax_excl`, `total_paid_tax_incl`,  ps_ec_reliquat.`total_products`, `total_products_wt`, `total_shipping_tax_excl`, 0, 0, `total_wrapping_tax_excl`, `total_wrapping_tax_incl`, 'RG SPORTS', '', ps_ec_reliquat.date_add from ps_ec_reliquat LEFT JOIN ps_orders on ps_orders.id_order = ps_ec_reliquat.id_order WHERE ps_ec_reliquat.id_reliquat=  ".(int)$id_reliquat.' ON DUPLICATE KEY update  ps_order_invoice.total_paid_tax_excl = ps_orders.total_paid_tax_excl,ps_order_invoice.total_paid_tax_incl=ps_orders.total_paid_tax_incl, ps_order_invoice.`total_products` =  ps_ec_reliquat.`total_products`, ps_order_invoice.id_order= ps_ec_reliquat.id_order'
     );
        //SEND INVOICE TO QUICKBOOKS
-       require_once dirname(__FILE__) . '/../quickbooks_online/quickbooks_online.php';
-       $quickbooks = new QuickbooksOnline();
-       $quickbooks->syncOrderToQuickbooks(null, $id_reliquat);
+     require_once dirname(__FILE__) . '/../quickbooks_online/quickbooks_online.php';
+     $quickbooks = new QuickbooksOnline();
+     $quickbooks->syncOrderToQuickbooks(null, $id_reliquat);
 
 
-   }
-   public function updateReliquat($id_reliquat, $tracking_number, $id_carrier, $id_order_state, $id_order)
-   {
+ }
+ public function updateReliquat($id_reliquat, $tracking_number, $id_carrier, $id_order_state, $id_order)
+ {
     Db::getinstance()->update(
         'ec_reliquat',
         array(
@@ -782,15 +782,30 @@ public static function addReliquatProduct($id_reliquat, $send_email = false, $id
         if (strpos($key, 'qty')){
             $quantity = $value;
         }
-        $sql = 'INSERT INTO `ps_ec_reliquat_product` ( `id_reliquat`, `id_order_detail`, `quantity`, `id_warehouse`)
+        if (strpos($key, 'weight')){
+            $weight = $value;
+        }
+        $sql = 'INSERT INTO `ps_ec_reliquat_product` ( `id_reliquat`, `id_order_detail`, `quantity`, `id_warehouse`,`calculated_weight`)
         VALUES
-        ( '.$id_reliquat.', '.$id_order_detail.', '.$quantity.', '.$id_warehouse.')
+        ( '.$id_reliquat.', '.$id_order_detail.', '.$quantity.', '.$id_warehouse.','.$weight.')
         ON DUPLICATE KEY UPDATE
         quantity ='.$quantity.',
+        calculated_weight = '.$weight.',
         id_warehouse = '.$id_warehouse;
         Db::getInstance()->executeS(
             ''.$sql.''
         );    
+        // ob_start();
+        // var_dump($productinfo);
+        // $result = ob_get_clean();
+
+        // Db::getinstance()->insert(
+        //     'ec_reliquat_product',
+        //     array(
+
+        //         'text'=> pSQL($result.$sql)
+        //     )
+        // );
     }
     //remove items at 0
     Db::getInstance()->executeS(
@@ -888,7 +903,9 @@ public  function editReliquatProduct($id_reliquat, $send_email = false, $id_orde
         if (strpos($key, 'wh')){
             $id_warehouse = $value;
         }
-
+        if (strpos($key, 'weight')){
+            $weight = $value;
+        }
         if (strpos($key, 'qty')){
             $quantity = $value;
         }
@@ -898,15 +915,28 @@ public  function editReliquatProduct($id_reliquat, $send_email = false, $id_orde
         // $test = Db::getInstance()->executeS("INSERT INTO int_logs (text) values ('$id_warehouse')");
 
 
-        $sql = 'INSERT INTO `ps_ec_reliquat_product` ( `id_reliquat`, `id_order_detail`, `quantity`, `id_warehouse`)
+        $sql = 'INSERT INTO `ps_ec_reliquat_product` ( `id_reliquat`, `id_order_detail`, `quantity`, `id_warehouse`, `actual_weight`)
         VALUES
-        ( '.$id_reliquat.', '.$id_order_detail.', '.$quantity.', '.$id_warehouse.')
+        ( '.$id_reliquat.', '.$id_order_detail.', '.$quantity.', '.$id_warehouse.', '.$weight.')
         ON DUPLICATE KEY UPDATE
         quantity ='.$quantity.',
-        id_warehouse = '.$id_warehouse;
+        id_warehouse = '.$id_warehouse.',
+        actual_weight = '.$weight;
         Db::getInstance()->executeS(
             ''.$sql.''
         );    
+
+        // ob_start();
+        // var_dump($products);
+        // $result = ob_get_clean();
+
+        // Db::getinstance()->insert(
+        //     'ec_reliquat_product',
+        //     array(
+
+        //         'text'=> pSQL($result.$sql)
+        //     )
+        // );
     }
     //remove items at 0
     Db::getInstance()->executeS(
@@ -917,17 +947,7 @@ public  function editReliquatProduct($id_reliquat, $send_email = false, $id_orde
         'UPDATE geopos_products left join vu_items_summary on item_sid = vu_items_summary.rg_id LEFT JOIN  ps_order_detail ON ps_order_detail.product_mpn = vu_items_summary.mfg_pn LEFT JOIN ps_ec_reliquat_product  on ps_ec_reliquat_product.id_order_detail = ps_order_detail.id_order_detail and geopos_products.warehouse = ps_ec_reliquat_product.id_warehouse  SET geopos_products.qty = geopos_products.qty-ps_ec_reliquat_product.quantity where ps_ec_reliquat_product.id_warehouse != 0 and id_reliquat = '.$id_reliquat.''
     ); 
 
-    // ob_start();
-    // var_dump($products);
-    // $result = ob_get_clean();
 
-    // Db::getinstance()->insert(
-    //     'ec_reliquat_product',
-    //     array(
-
-    //         'text'=> pSQL($result.$sql)
-    //     )
-    // );
 
     // foreach ($products as $id_order_detail => $quantity) {
     //     if ($quantity > 0) {
